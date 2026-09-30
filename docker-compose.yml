@@ -12,4 +12,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
     restart: unless-stopped
+    # docker compose up -d to run without tunnel token
+    # docker compose --profile production up -d to run with tunnel token
+    profiles: ["production"]
     command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}

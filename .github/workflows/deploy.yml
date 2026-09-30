@@ -1,0 +1,40 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Kiểm tra cú pháp docker-compose.yml
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: self-hosted
+    timeout-minutes: 15
+    concurrency: deploy-prod
+    steps:
+      - name: Cập nhật code đúng commit đã qua test
+        run: |
+          cd ~/pbl6-lungxray
+          git fetch origin main
+          git merge --ff-only ${{ github.sha }}
+      - name: Khởi động lại hệ thống (bật cloudflared for production)
+        run: |
+          cd ~/pbl6-lungxray
+          docker compose --profile production up -d --build
+          docker image prune -f
+      - name: Smoke test (web có sống không)
+        run: curl -fsS --retry 10 --retry-delay 5 --retry-all-errors https://www.lungxray.me > /dev/null
