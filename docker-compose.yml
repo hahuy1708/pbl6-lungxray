@@ -6,13 +6,24 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./html:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - segmentation-api
+      - classification-api
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
     restart: unless-stopped
-    # docker compose up -d to run without tunnel token
-    # docker compose --profile production up -d to run with tunnel token
     profiles: ["production"]
     command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+  segmentation-api:
+    build: ./services/segmentation-api
+    container_name: segmentation-api
+    restart: always
+
+  classification-api:
+    build: ./services/classification-api
+    container_name: classification-api
+    restart: always
