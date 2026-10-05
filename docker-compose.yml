@@ -10,6 +10,8 @@ services:
     depends_on:
       - segmentation-api
       - classification-api
+      - backend
+      - frontend
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -17,6 +19,36 @@ services:
     restart: unless-stopped
     profiles: ["production"]
     command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+  db:
+    image: mysql:8.4
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  backend:
+    build: ./services/backend
+    container_name: backend
+    restart: always
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      - db
+
+  frontend:
+    build: ./services/frontend
+    container_name: frontend
+    restart: always
 
   segmentation-api:
     build: ./services/segmentation-api
@@ -27,3 +59,7 @@ services:
     build: ./services/classification-api
     container_name: classification-api
     restart: always
+
+volumes:
+  db_data:
+  uploads_data:
