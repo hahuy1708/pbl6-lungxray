@@ -37,6 +37,7 @@ jobs:
         run: |
           cd ~/pbl6-lungxray
           docker compose --profile production up -d --build
+          docker compose exec -T nginx nginx -s reload
           docker image prune -f
       - name: Smoke test (web có sống không)
         run: curl -fsS --retry 10 --retry-delay 5 --retry-all-errors https://www.lungxray.me > /dev/null
