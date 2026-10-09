@@ -31,6 +31,8 @@ jobs:
           cd ~/pbl6-lungxray
           git fetch origin main
           git merge --ff-only ${{ github.sha }}
+      - name: Kiểm tra model segmentation đã được chép lên server
+        run: test -s ~/pbl6-lungxray/services/segmentation-api/weights/unet_best.pth
       - name: Khởi động lại hệ thống (bật cloudflared for production)
         run: |
           cd ~/pbl6-lungxray

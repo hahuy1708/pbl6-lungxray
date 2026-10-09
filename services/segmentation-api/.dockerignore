@@ -1,0 +1,7 @@
+weights/
+**/__pycache__/
+**/*.py[cod]
+.git/
+.pytest_cache/
+.venv/
+venv/

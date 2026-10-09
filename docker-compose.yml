@@ -54,6 +54,11 @@ services:
     build: ./services/segmentation-api
     container_name: segmentation-api
     restart: always
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Mount weights từ Host vào Container (chế độ chỉ đọc :ro)
+      - ./services/segmentation-api/weights:/app/weights:ro
 
   classification-api:
     build: ./services/classification-api
