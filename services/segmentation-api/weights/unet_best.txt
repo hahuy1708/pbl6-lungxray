@@ -1,0 +1,96 @@
+UNET_BEST.PTH - MODEL SEGMENTATION PHỔI
+
+==================================================
+1. FILE
+==================================================
+- Tên file       : unet_best.pth
+- Định dạng      : state_dict của PyTorch (chỉ trọng số, không kèm code kiến trúc)
+- Kích thước     : khoảng 30 MB (7,76 triệu tham số), CHƯA kiểm tra file thật
+- Checkpoint     : chọn theo val Dice cao nhất, epoch 36/40, val Dice = 0,9623
+- Huấn luyện     : Kaggle, GPU Tesla T4, PyTorch 2.11.0+cu128, khoảng 6 giây/epoch
+
+==================================================
+2. KIẾN TRÚC
+==================================================
+- U-Net tự định nghĩa (KHÔNG dùng pretrained)
+- 4 tầng encoder + bottleneck, base = 32 kênh (32-64-128-256-512)
+- Mỗi khối: Conv3x3 -> BatchNorm -> ReLU, hai lần liên tiếp
+- Upsample bằng ConvTranspose2d, skip connection kiểu nối kênh (concat)
+- Đầu vào 1 kênh, đầu ra 1 kênh LOGITS (chưa qua sigmoid)
+- Khi nạp trọng số phải dùng đúng class UNet(base=32) trong segmentation.py,
+  giữ nguyên tên lớp và tên thuộc tính, nếu đổi tên sẽ không nạp được
+
+==================================================
+3. DỮ LIỆU HUẤN LUYỆN
+==================================================
+- Dataset      : Chest Xray Masks and Labels (Montgomery + Shenzhen)
+- Tổng số      : 704 cặp ảnh + mask (gộp imagesTr/Ts và labelsTr/Ts)
+                 Shenzhen 566, Montgomery 138
+- Chia tập     : seed 42, chia phân tầng theo nguồn
+                 train 492 | val 106 | test 106
+- Mask         : nhị phân 0/1 (mask gốc > 127), gộp cả hai lá phổi thành một mask
+- Tăng cường   : xoay ±10 độ, phóng/thu 0,9-1,1, dịch ±5%, đổi sáng/tương phản
+                 (mỗi nhóm áp dụng với xác suất 50%, chỉ trên tập train)
+
+==================================================
+4. TIỀN XỬ LÝ ĐẦU VÀO
+==================================================
+1) Đọc ảnh xám (1 kênh), uint8
+2) Resize về 256 x 256, nội suy INTER_AREA
+3) Chia 255 -> float32 trong [0, 1]
+4) KHÔNG trừ mean / chia std
+5) Tensor có dạng (1, 1, 256, 256)
+
+==================================================
+5. HUẤN LUYỆN
+==================================================
+- Loss       : BCEWithLogits + Dice loss
+- Optimizer  : Adam, lr 1e-3
+- Scheduler  : ReduceLROnPlateau theo val Dice (giảm một nửa, patience 4)
+- Batch 16, tối đa 40 epoch, early stopping patience 10 (thực tế chạy đủ 40 epoch)
+- Mixed precision (AMP)
+
+==================================================
+6. ĐẦU RA KHI SUY LUẬN (segmentation.py -> SegmentationModel.predict)
+==================================================
+Quy trình: sigmoid -> phóng xác suất về kích thước ảnh gốc -> ngưỡng 0,5
+-> giữ tối đa 2 vùng lớn nhất (vùng nhỏ hơn 0,5% ảnh bị bỏ) -> lấp lỗ
+
+Trả về SegResult gồm:
+- mask             : mảng 0/1, cùng kích thước ảnh gốc
+- crop             : ảnh gốc cắt theo hộp bao quanh phổi, đệm lề 8%
+- crop_masked      : như crop nhưng xoá vùng ngoài phổi (mask đã nới ~3% cạnh ngắn)
+- bbox             : (x0, y0, x1, y1) trên ảnh gốc
+- confidence       : xác suất trung bình bên trong mask
+- lung_area_ratio  : diện tích phổi / diện tích ảnh
+- is_valid, warning: cờ cảnh báo. Không thấy phổi, hoặc diện tích phổi ngoài
+                     khoảng 10%-60% ảnh, thì is_valid = False
+
+Đầu vào nhận được: đường dẫn, bytes (file upload), ảnh PIL, mảng numpy
+
+==================================================
+7. KẾT QUẢ (tập test 106 ảnh, seed 42)
+==================================================
+                      Dice            IoU
+Baseline ngưỡng v2    0,7280          0,5912
+U-Net                 0,9655 ± 0,027  0,9346 ± 0,048
+
+- U-Net hơn baseline trên 106/106 ảnh (Wilcoxon theo cặp, p ~ 4e-19)
+- U-Net: Dice nhỏ nhất 0,846; có 3 ảnh Dice < 0,9
+- Theo nguồn: Shenzhen 0,9624 | Montgomery 0,9781
+- Đo lại ở KÍCH THƯỚC GỐC trên 20 ảnh test: Dice 0,9560 (nhỏ nhất 0,871)
+- Tốc độ CPU (đo trên Kaggle): trung bình 0,56 giây/ảnh, lâu nhất 0,80 giây
+  (chưa đo trên VM của server)
+
+==================================================
+8. GIỚI HẠN ĐÃ BIẾT
+==================================================
+- Chỉ train trên Montgomery + Shenzhen, chưa kiểm chứng trên NIH ChestX-ray14
+  hay ảnh từ nguồn khác (có thể lệch phân phối ảnh)
+- Mask gộp hai phổi, không tách phổi trái/phải
+- Ngưỡng 10%-60% của is_valid là giá trị tạm, tác giả ghi là sẽ hiệu chỉnh
+  ở bước kiểm thử
+- Kiểm tra từ chối ảnh sai mới thử với ảnh đen, ảnh nhiễu, ảnh trắng; chưa thử
+  ảnh chụp thường hoặc X-quang bộ phận khác
+- Số liệu Dice ở 256x256 và ở kích thước gốc khác nhau (0,9655 so với 0,9560),
+  khi báo cáo cần nói rõ đo ở kích thước nào
