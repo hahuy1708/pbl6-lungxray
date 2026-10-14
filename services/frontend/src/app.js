@@ -6,6 +6,9 @@ const submitButton = document.querySelector("#submit-button");
 const status = document.querySelector("#status");
 const resultSection = document.querySelector("#result-section");
 const result = document.querySelector("#result");
+const resultImages = document.querySelector("#result-images");
+const cropOutput = document.querySelector("#crop-output");
+const cropMaskedOutput = document.querySelector("#crop-masked-output");
 let previewUrl;
 
 fileInput.addEventListener("change", () => {
@@ -44,15 +47,27 @@ form.addEventListener("submit", async (event) => {
     try {
         const formData = new FormData();
         formData.append("file", file);
-        const response = await fetch("/api/segment/", { method: "POST", body: formData });
+        const response = await fetch("/api/segment/crops", { method: "POST", body: formData });
         const data = await response.json();
 
-        result.textContent = JSON.stringify(data, null, 2);
-        resultSection.hidden = false;
         if (!response.ok) {
+            resultImages.hidden = true;
+            result.textContent = JSON.stringify(data, null, 2);
+            resultSection.hidden = false;
             status.textContent = `API trả về lỗi HTTP ${response.status}.`;
             status.classList.add("error");
         } else {
+            cropOutput.src = `data:image/png;base64,${data.crop_png_base64}`;
+            cropMaskedOutput.src = `data:image/png;base64,${data.crop_masked_png_base64}`;
+            result.textContent = JSON.stringify({
+                confidence: data.confidence,
+                lung_area_ratio: data.lung_area_ratio,
+                bbox: data.bbox,
+                crop_shape: data.crop_shape,
+                crop_masked_shape: data.crop_masked_shape,
+            }, null, 2);
+            resultImages.hidden = false;
+            resultSection.hidden = false;
             status.textContent = "Server đã phân tích ảnh thành công.";
         }
     } catch (error) {
