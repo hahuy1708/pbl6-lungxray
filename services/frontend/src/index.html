@@ -11,7 +11,7 @@
         <header>
             <p class="eyebrow">PBL6 · LUNGXRAY</p>
             <h1>Phân tích X-quang phổi</h1>
-            <p class="intro">Tải ảnh X-quang lên để gửi tới dịch vụ segmentation trên server.</p>
+            <p class="intro">Tải ảnh X-quang lên để phân đoạn phổi và chạy mô hình phân loại.</p>
         </header>
 
         <section class="card" aria-labelledby="upload-title">
@@ -41,6 +41,9 @@
             </div>
             <h3>Thông số</h3>
             <pre id="result" aria-live="polite"></pre>
+            <h3>Kết quả phân loại thử nghiệm</h3>
+            <p class="result-note">Ba nhóm được dự đoán độc lập. Các ngưỡng được chọn trên tập validation để ưu tiên sensitivity; kết quả không phải chẩn đoán.</p>
+            <pre id="classification-result" aria-live="polite"></pre>
         </section>
     </main>
     <script src="/app.js" defer></script>

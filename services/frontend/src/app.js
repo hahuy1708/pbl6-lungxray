@@ -6,6 +6,7 @@ const submitButton = document.querySelector("#submit-button");
 const status = document.querySelector("#status");
 const resultSection = document.querySelector("#result-section");
 const result = document.querySelector("#result");
+const classificationResult = document.querySelector("#classification-result");
 const resultImages = document.querySelector("#result-images");
 const cropOutput = document.querySelector("#crop-output");
 const cropMaskedOutput = document.querySelector("#crop-masked-output");
@@ -41,8 +42,9 @@ form.addEventListener("submit", async (event) => {
 
     submitButton.disabled = true;
     status.classList.remove("error");
-    status.textContent = "Đang gửi ảnh và chờ server phân tích…";
+    status.textContent = "Đang phân đoạn phổi…";
     resultSection.hidden = true;
+    classificationResult.textContent = "Đang chờ kết quả phân loại…";
 
     try {
         const formData = new FormData();
@@ -53,6 +55,7 @@ form.addEventListener("submit", async (event) => {
         if (!response.ok) {
             resultImages.hidden = true;
             result.textContent = JSON.stringify(data, null, 2);
+            classificationResult.textContent = "Không chạy được vì segmentation không thành công.";
             resultSection.hidden = false;
             status.textContent = `API trả về lỗi HTTP ${response.status}.`;
             status.classList.add("error");
@@ -68,7 +71,26 @@ form.addEventListener("submit", async (event) => {
             }, null, 2);
             resultImages.hidden = false;
             resultSection.hidden = false;
-            status.textContent = "Server đã phân tích ảnh thành công.";
+
+            status.textContent = "Đã phân đoạn phổi; đang phân loại ảnh crop…";
+            const cropBytes = Uint8Array.from(atob(data.crop_png_base64), (char) => char.charCodeAt(0));
+            const cropBlob = new Blob([cropBytes], { type: "image/png" });
+            const classifierForm = new FormData();
+            classifierForm.append("file", cropBlob, "lung-crop.png");
+            const classifierResponse = await fetch("/api/classify/predict", {
+                method: "POST",
+                body: classifierForm,
+            });
+            const classifierData = await classifierResponse.json();
+
+            if (!classifierResponse.ok) {
+                classificationResult.textContent = JSON.stringify(classifierData, null, 2);
+                status.textContent = `Segmentation thành công nhưng Classification API trả lỗi HTTP ${classifierResponse.status}.`;
+                status.classList.add("error");
+            } else {
+                classificationResult.textContent = JSON.stringify(classifierData, null, 2);
+                status.textContent = "Segmentation và classification hoàn tất.";
+            }
         }
     } catch (error) {
         status.textContent = `Không kết nối được tới API: ${error.message}`;

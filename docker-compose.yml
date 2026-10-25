@@ -64,6 +64,8 @@ services:
     build: ./services/classification-api
     container_name: classification-api
     restart: always
+    volumes:
+      - ./services/classification-api/weights:/app/weights:ro
 
 volumes:
   db_data:
