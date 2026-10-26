@@ -7,9 +7,6 @@ const status = document.querySelector("#status");
 const resultSection = document.querySelector("#result-section");
 const result = document.querySelector("#result");
 const classificationResult = document.querySelector("#classification-result");
-const resultImages = document.querySelector("#result-images");
-const cropOutput = document.querySelector("#crop-output");
-const cropMaskedOutput = document.querySelector("#crop-masked-output");
 let previewUrl;
 
 fileInput.addEventListener("change", () => {
@@ -42,7 +39,7 @@ form.addEventListener("submit", async (event) => {
 
     submitButton.disabled = true;
     status.classList.remove("error");
-    status.textContent = "Đang phân đoạn phổi…";
+    status.textContent = "Đang phân đoạn và phân loại ảnh…";
     resultSection.hidden = true;
     classificationResult.textContent = "Đang chờ kết quả phân loại…";
 
@@ -53,42 +50,27 @@ form.addEventListener("submit", async (event) => {
         const data = await response.json();
 
         if (!response.ok) {
-            resultImages.hidden = true;
             result.textContent = JSON.stringify(data, null, 2);
             classificationResult.textContent = "Không chạy được vì segmentation không thành công.";
             resultSection.hidden = false;
             status.textContent = `API trả về lỗi HTTP ${response.status}.`;
             status.classList.add("error");
         } else {
-            cropOutput.src = `data:image/png;base64,${data.crop_png_base64}`;
-            cropMaskedOutput.src = `data:image/png;base64,${data.crop_masked_png_base64}`;
             result.textContent = JSON.stringify({
                 confidence: data.confidence,
                 lung_area_ratio: data.lung_area_ratio,
                 bbox: data.bbox,
                 crop_shape: data.crop_shape,
-                crop_masked_shape: data.crop_masked_shape,
+                timing_seconds: data.timing_seconds,
             }, null, 2);
-            resultImages.hidden = false;
             resultSection.hidden = false;
 
-            status.textContent = "Đã phân đoạn phổi; đang phân loại ảnh crop…";
-            const cropBytes = Uint8Array.from(atob(data.crop_png_base64), (char) => char.charCodeAt(0));
-            const cropBlob = new Blob([cropBytes], { type: "image/png" });
-            const classifierForm = new FormData();
-            classifierForm.append("file", cropBlob, "lung-crop.png");
-            const classifierResponse = await fetch("/api/classify/predict", {
-                method: "POST",
-                body: classifierForm,
-            });
-            const classifierData = await classifierResponse.json();
-
-            if (!classifierResponse.ok) {
-                classificationResult.textContent = JSON.stringify(classifierData, null, 2);
-                status.textContent = `Segmentation thành công nhưng Classification API trả lỗi HTTP ${classifierResponse.status}.`;
+            if (data.classification?.error) {
+                classificationResult.textContent = JSON.stringify(data.classification, null, 2);
+                status.textContent = `Segmentation hoàn tất nhưng classification thất bại: ${data.classification.error}`;
                 status.classList.add("error");
             } else {
-                classificationResult.textContent = JSON.stringify(classifierData, null, 2);
+                classificationResult.textContent = JSON.stringify(data.classification, null, 2);
                 status.textContent = "Segmentation và classification hoàn tất.";
             }
         }

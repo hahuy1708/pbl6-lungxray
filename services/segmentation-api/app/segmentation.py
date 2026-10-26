@@ -107,7 +107,6 @@ def _clean_mask(mask: np.ndarray, max_regions=2, min_area_ratio=0.005) -> Tuple[
 class SegResult:
     mask: np.ndarray            # uint8 0/1, cùng kích thước ảnh gốc
     crop: np.ndarray            # ảnh gốc cắt theo bounding box phổi (có đệm lề)
-    crop_masked: np.ndarray     # như crop nhưng xoá vùng ngoài phổi (mask đã nới rộng)
     bbox: Tuple[int, int, int, int]   # (x0, y0, x1, y1) trên ảnh gốc
     confidence: float           # xác suất trung bình bên trong mask
     lung_area_ratio: float      # diện tích phổi / diện tích ảnh
@@ -138,18 +137,21 @@ class SegmentationModel:
         mask, n_regions = _clean_mask((prob > 0.5).astype(np.uint8))
 
         if n_regions == 0:
-            return SegResult(mask, gray, gray, (0, 0, W, H), 0.0, 0.0, False,
-                             "Không phát hiện vùng phổi trong ảnh")
+            return SegResult(
+                mask=mask,
+                crop=gray,
+                bbox=(0, 0, W, H),
+                confidence=0.0,
+                lung_area_ratio=0.0,
+                is_valid=False,
+                warning="Không phát hiện vùng phổi trong ảnh",
+            )
 
         ys, xs = np.where(mask > 0)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()) + 1, int(ys.min()), int(ys.max()) + 1
         px, py = int(margin * (x1 - x0)), int(margin * (y1 - y0))
         x0, y0 = max(0, x0 - px), max(0, y0 - py)
         x1, y1 = min(W, x1 + px), min(H, y1 + py)
-
-        k = max(3, int(0.03 * min(H, W)) // 2 * 2 + 1)            # kernel lẻ, ~3% cạnh ảnh
-        dilated = cv2.dilate(mask, np.ones((k, k), np.uint8))
-        masked = gray * dilated
 
         ratio = float(mask.mean())
         warning = None
@@ -159,7 +161,6 @@ class SegmentationModel:
         return SegResult(
             mask=mask,
             crop=gray[y0:y1, x0:x1],
-            crop_masked=masked[y0:y1, x0:x1],
             bbox=(x0, y0, x1, y1),
             confidence=float(prob[mask > 0].mean()),
             lung_area_ratio=ratio,
