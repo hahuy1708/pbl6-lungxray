@@ -6,3 +6,4 @@ venv/
 data/*.png
 data/*.jpg
 .ipynb_checkpoints/
+services/backend/app/utils/seed_data.py

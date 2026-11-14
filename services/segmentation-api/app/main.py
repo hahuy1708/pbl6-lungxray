@@ -1,11 +1,12 @@
+import base64
 import logging
 import time
 
 import cv2
 import httpx
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Query
 
-from app.segmentation import SegmentationModel
+from app.segmentation import SegmentationModel, to_gray_uint8
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -72,8 +73,8 @@ async def segment_xray(file: UploadFile = File(...)):
 
 
 @app.post("/segment/crops")
-async def segment_crops(file: UploadFile = File(...)):
-    """Run both models; return metadata only, never transfer crop images to the browser."""
+async def segment_crops(file: UploadFile = File(...), include_images: bool = Query(False)):
+    """Run both models; optionally return base64 artifacts for backend/R2 storage."""
     started = time.perf_counter()
     contents = await file.read()
 
@@ -89,6 +90,12 @@ async def segment_crops(file: UploadFile = File(...)):
     classification_seconds = time.perf_counter() - classification_started
     total_seconds = time.perf_counter() - started
 
+    if isinstance(classification, dict) and "error" in classification:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Dịch vụ phân loại AI gặp sự cố: {classification['error']}"
+        )
+
     logger.info(
         "file=%s upload_bytes=%d segmentation=%.3fs classification=%.3fs total=%.3fs",
         file.filename,
@@ -98,7 +105,7 @@ async def segment_crops(file: UploadFile = File(...)):
         total_seconds,
     )
 
-    return {
+    payload = {
         "confidence": round(result.confidence, 4),
         "lung_area_ratio": round(result.lung_area_ratio, 4),
         "bbox": {
@@ -115,3 +122,29 @@ async def segment_crops(file: UploadFile = File(...)):
             "total_server": round(total_seconds, 3),
         },
     }
+
+    if include_images:
+        # 1. Mask (uint8 0/255)
+        mask_uint8 = (result.mask * 255).astype("uint8")
+        ok_m, buf_m = cv2.imencode(".png", mask_uint8)
+        payload["mask_base64"] = base64.b64encode(buf_m.tobytes()).decode("ascii") if ok_m else None
+
+        # 2. Crop
+        ok_c, buf_c = cv2.imencode(".png", result.crop)
+        payload["crop_base64"] = base64.b64encode(buf_c.tobytes()).decode("ascii") if ok_c else None
+
+        # 3. Overlay (green contour + red bbox)
+        try:
+            gray = to_gray_uint8(contents)
+            overlay = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+            cnts, _ = cv2.findContours(result.mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(overlay, cnts, -1, (0, 255, 0), 2)
+            x0, y0, x1, y1 = result.bbox
+            cv2.rectangle(overlay, (x0, y0), (x1, y1), (0, 0, 255), 2)
+            ok_o, buf_o = cv2.imencode(".png", overlay)
+            payload["overlay_base64"] = base64.b64encode(buf_o.tobytes()).decode("ascii") if ok_o else None
+        except Exception as exc:
+            logger.warning("Không tạo được overlay image: %s", exc)
+            payload["overlay_base64"] = None
+
+    return payload

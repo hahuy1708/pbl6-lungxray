@@ -40,10 +40,20 @@ services:
     restart: always
     environment:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
-    volumes:
-      - uploads_data:/app/uploads
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      SEGMENTATION_API_URL: http://segmentation-api:8000/segment/crops
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME}
+      R2_ENDPOINT_URL: ${R2_ENDPOINT_URL}
+      R2_REGION: ${R2_REGION}
+      R2_PRESIGNED_TTL_SECONDS: ${R2_PRESIGNED_TTL_SECONDS}
     depends_on:
       - db
+      - segmentation-api
 
   frontend:
     build: ./services/frontend
@@ -69,4 +79,3 @@ services:
 
 volumes:
   db_data:
-  uploads_data:
