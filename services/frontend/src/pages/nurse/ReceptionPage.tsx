@@ -210,25 +210,25 @@ export const ReceptionPage: React.FC = () => {
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
-          <UserPlus className="w-7 h-7 text-sky-600" />
+        <h1 className="text-2xl font-bold text-chrome-900 flex items-center gap-2.5">
+          <UserPlus className="w-7 h-7 text-accent-600" />
           Tiếp Nhận & Đăng Ký Khám Bệnh
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-chrome-600 mt-1">
           Nhập thông tin bệnh nhân qua CCCD, lựa chọn phòng khám và cấp số trực tiếp tại quầy tiếp đón.
         </p>
       </div>
 
       {/* Thông báo lỗi / thành công */}
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl flex items-center gap-2 animate-in fade-in">
+        <div className="p-4 bg-flag-50 border border-flag-50 text-flag-500 text-sm rounded-sm flex items-center gap-2 animate-in fade-in">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-2xl flex items-center gap-2 animate-in fade-in">
+        <div className="p-4 bg-clear-50 border border-clear-50 text-clear-500 text-sm rounded-sm flex items-center gap-2 animate-in fade-in">
           <CheckCircle className="w-5 h-5 shrink-0" />
           <span>{successMsg}</span>
         </div>
@@ -236,16 +236,16 @@ export const ReceptionPage: React.FC = () => {
 
       <form onSubmit={handleSaveAndAssignQueue} className="space-y-6">
         {/* KHỐI 1: THÔNG TIN HÀNH CHÍNH BỆNH NHÂN */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <User className="w-5 h-5 text-sky-600" />
+        <div className="bg-white rounded-sm p-6 sm:p-8 border border-chrome-200 space-y-6">
+          <div className="flex items-center justify-between border-b border-chrome-100 pb-4">
+            <h2 className="text-base font-bold text-chrome-900 flex items-center gap-2">
+              <User className="w-5 h-5 text-accent-600" />
               1. Thông Tin Hành Chính Bệnh Nhân
             </h2>
             <button
               type="button"
               onClick={handleResetForm}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 text-xs font-semibold text-chrome-600 hover:text-chrome-900 hover:bg-chrome-100 rounded-sm transition-colors flex items-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Làm mới form
@@ -253,14 +253,14 @@ export const ReceptionPage: React.FC = () => {
           </div>
 
           {/* Ô nhập CCCD đầu tiên nổi bật */}
-          <div className="p-4 bg-sky-50/60 border-2 border-sky-200 rounded-2xl space-y-2">
+          <div className="p-4 bg-chrome-50/60 border-2 border-chrome-200 rounded-sm space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="card_number" className="text-xs font-black text-sky-900 uppercase tracking-wider flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-sky-600" />
+              <label htmlFor="card_number" className="text-xs font-black text-accent-600 uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard className="w-4 h-4 text-accent-600" />
                 Số Căn Cước Công Dân (CCCD)
               </label>
               {isCheckingCCCD && (
-                <span className="text-xs text-sky-600 flex items-center gap-1 animate-pulse">
+                <span className="text-xs text-accent-600 flex items-center gap-1 animate-pulse">
                   <RefreshCw className="w-3 h-3 animate-spin" />
                   Đang kiểm tra CSDL...
                 </span>
@@ -274,7 +274,7 @@ export const ReceptionPage: React.FC = () => {
               maxLength={12}
               value={formData.card_number}
               onChange={(e) => setFormData({ ...formData, card_number: e.target.value.replace(/\D/g, '') })}
-              className="w-full px-4 py-3 bg-white rounded-xl border border-sky-300 text-slate-900 font-mono text-base font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 tracking-wider shadow-inner"
+              className="w-full px-4 py-3 bg-white rounded-sm border border-accent-500 text-ink-950 font-mono text-base font-bold focus:outline focus:outline-2 focus:outline-accent-500 tracking-wider"
               autoFocus
             />
 
@@ -282,15 +282,15 @@ export const ReceptionPage: React.FC = () => {
             {hasSearched && (
               existingPatient ? (
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
-                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs text-clear-500 font-semibold flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-clear-500" />
                     Bệnh nhân cũ ({existingPatient.patient_code} - {existingPatient.full_name}).
                   </span>
                   <button
                     type="button"
                     disabled={isUpdating}
                     onClick={handleUpdateExisting}
-                    className="text-xs font-bold text-sky-700 hover:text-sky-900 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-accent-600 hover:text-accent-600 hover:underline flex items-center gap-1"
                   >
                     <Save className="w-3.5 h-3.5" />
                     {isUpdating ? 'Đang lưu...' : 'Lưu sửa đổi nếu có'}
@@ -307,8 +307,8 @@ export const ReceptionPage: React.FC = () => {
           {/* Các trường thông tin còn lại */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label htmlFor="full_name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Họ và Tên Bệnh Nhân <span className="text-rose-500">*</span>
+              <label htmlFor="full_name" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
+                Họ và Tên Bệnh Nhân <span className="text-flag-500">*</span>
               </label>
               <input
                 id="full_name"
@@ -317,19 +317,19 @@ export const ReceptionPage: React.FC = () => {
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 placeholder="Ví dụ: Nguyễn Văn Bình"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium"
               />
             </div>
 
             <div>
-              <label htmlFor="gender" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Giới Tính <span className="text-rose-500">*</span>
+              <label htmlFor="gender" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
+                Giới Tính <span className="text-flag-500">*</span>
               </label>
               <select
                 id="gender"
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-white"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium bg-white"
               >
                 <option value="MALE">Nam</option>
                 <option value="FEMALE">Nữ</option>
@@ -338,8 +338,8 @@ export const ReceptionPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="date_of_birth" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Ngày Tháng Năm Sinh <span className="text-rose-500">*</span>
+              <label htmlFor="date_of_birth" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
+                Ngày Tháng Năm Sinh <span className="text-flag-500">*</span>
               </label>
               <input
                 id="date_of_birth"
@@ -347,13 +347,13 @@ export const ReceptionPage: React.FC = () => {
                 required
                 value={formData.date_of_birth}
                 onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium"
               />
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Số Điện Thoại Liên Hệ <span className="text-rose-500">*</span>
+              <label htmlFor="phone" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
+                Số Điện Thoại Liên Hệ <span className="text-flag-500">*</span>
               </label>
               <input
                 id="phone"
@@ -362,12 +362,12 @@ export const ReceptionPage: React.FC = () => {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="Ví dụ: 0914706192"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium"
               />
             </div>
 
             <div>
-              <label htmlFor="insurance_number" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label htmlFor="insurance_number" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
                 Mã Thẻ BHYT (Nếu có)
               </label>
               <input
@@ -376,12 +376,12 @@ export const ReceptionPage: React.FC = () => {
                 value={formData.insurance_number}
                 onChange={(e) => setFormData({ ...formData, insurance_number: e.target.value.toUpperCase() })}
                 placeholder="VD: DN44095001234"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium font-mono"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium font-mono"
               />
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label htmlFor="address" className="block text-xs font-bold text-chrome-900 uppercase tracking-wider mb-1.5">
                 Địa Chỉ Nơi Cư Trú
               </label>
               <input
@@ -390,27 +390,27 @@ export const ReceptionPage: React.FC = () => {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                className="w-full px-4 py-2.5 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-medium"
               />
             </div>
           </div>
         </div>
 
         {/* KHỐI 2: LỰA CHỌN PHÒNG KHÁM & CẤP SỐ THỨ TỰ */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="bg-white rounded-sm p-6 sm:p-8 border border-chrome-200 space-y-5">
+          <div className="flex items-center justify-between border-b border-chrome-100 pb-3">
             <div>
-              <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-sky-600" />
+              <h3 className="text-base font-bold text-chrome-900 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-accent-600" />
                 2. Lựa Chọn Phòng Khám Của Bác Sĩ (Tự động cấp STT)
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Ưu tiên lựa chọn phòng khám có ít người chờ nhất</p>
+              <p className="text-xs text-chrome-600 mt-0.5">Ưu tiên lựa chọn phòng khám có ít người chờ nhất</p>
             </div>
-            <span className="text-xs text-slate-400 font-medium">Tối đa 35 ca / ngày / phòng</span>
+            <span className="text-xs text-chrome-600 font-medium">Tối đa 35 ca / ngày / phòng</span>
           </div>
 
           {isLoadingRooms ? (
-            <p className="text-xs text-slate-400 italic py-4">Đang tải danh sách phòng khám...</p>
+            <p className="text-xs text-chrome-600 italic py-4">Đang tải danh sách phòng khám...</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {rooms.map((room) => {
@@ -424,11 +424,11 @@ export const ReceptionPage: React.FC = () => {
                     onClick={() => {
                       if (!isBlocked) setSelectedRoom(room.name);
                     }}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${isBlocked
-                      ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
+                    className={`p-5 rounded-sm border transition-all cursor-pointer relative overflow-hidden ${isBlocked
+                      ? 'bg-chrome-100 border-chrome-200 opacity-60 cursor-not-allowed'
                       : isSelected
-                        ? 'bg-sky-50/80 border-sky-500 shadow-md ring-2 ring-sky-500/20'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
+                        ? 'bg-chrome-50/80 border-accent-500 ring-2 ring-accent-500/20'
+                        : 'bg-white border-chrome-200 hover:border-chrome-200'
                       }`}
                   >
                     {/* Status Badges */}
@@ -438,7 +438,7 @@ export const ReceptionPage: React.FC = () => {
                         Bác Sĩ Tạm Nghỉ
                       </div>
                     ) : isBlocked ? (
-                      <div className="absolute top-2 right-2 bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-rose-300">
+                      <div className="absolute top-2 right-2 bg-flag-50 text-flag-500 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-flag-500">
                         <AlertOctagon className="w-3.5 h-3.5" />
                         OFF
                       </div>
@@ -446,30 +446,30 @@ export const ReceptionPage: React.FC = () => {
 
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="text-sm font-bold text-slate-800">{room.name}</h4>
+                        <h4 className="text-sm font-bold text-chrome-900">{room.name}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-slate-400 font-mono">{room.code}</span>
+                          <span className="text-xs text-chrome-600 font-mono">{room.code}</span>
                           {room.doctor_name && (
-                            <span className="text-xs font-medium text-sky-700 bg-sky-100/70 px-2 py-0.5 rounded-md">
+                            <span className="text-xs font-medium text-accent-600 bg-chrome-100/70 px-2 py-0.5 rounded-sm">
                               BS: {room.doctor_name}
                             </span>
                           )}
                         </div>
                       </div>
                       {!isBlocked && isSelected && (
-                        <CheckCircle className="w-5 h-5 text-sky-600" />
+                        <CheckCircle className="w-5 h-5 text-accent-600" />
                       )}
                     </div>
 
                     {/* Queue Stats */}
-                    <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100 text-xs">
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-chrome-100 text-xs">
                       <div>
-                        <span className="text-slate-400 block">Đang chờ khám:</span>
+                        <span className="text-chrome-600 block">Đang chờ khám:</span>
                         <span className="text-base font-extrabold text-amber-600">{room.waiting_count} bệnh nhân</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block">Tiếp nhận hôm nay:</span>
-                        <span className="text-base font-bold text-slate-700">
+                        <span className="text-chrome-600 block">Tiếp nhận hôm nay:</span>
+                        <span className="text-base font-bold text-chrome-900">
                           {room.total_today} / {room.max_capacity}
                         </span>
                       </div>
@@ -477,13 +477,13 @@ export const ReceptionPage: React.FC = () => {
 
                     {/* Load Progress Bar */}
                     <div className="mt-3">
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                      <div className="w-full bg-chrome-200 rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${isBlocked
-                            ? 'bg-rose-500'
+                            ? 'bg-flag-500'
                             : room.load_percentage > 75
                               ? 'bg-amber-500'
-                              : 'bg-emerald-500'
+                              : 'bg-clear-500'
                             }`}
                           style={{ width: `${Math.min(room.load_percentage, 100)}%` }}
                         />
@@ -496,9 +496,9 @@ export const ReceptionPage: React.FC = () => {
           )}
 
           {/* Nút Submit chính */}
-          <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs text-slate-400 flex items-center gap-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="pt-5 border-t border-chrome-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-xs text-chrome-600 flex items-center gap-1">
+              <ShieldCheck className="w-4 h-4 text-clear-500" />
               Dữ liệu CCCD & SĐT được mã hóa an toàn ở tầng ứng dụng
             </span>
 
@@ -506,7 +506,7 @@ export const ReceptionPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !selectedRoom || formData.card_number.trim().length < 9}
-                className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-md transition-all text-sm disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-3 bg-accent-600 hover:bg-accent-500 text-white font-bold rounded-sm transition-all text-sm disabled:opacity-50 flex items-center gap-2"
               >
                 <Ticket className="w-4 h-4" />
                 {isSubmitting ? 'Đang cấp số...' : 'Phân phòng khám'}
@@ -525,33 +525,33 @@ export const ReceptionPage: React.FC = () => {
       >
         {assignedEncounter && (
           <div className="space-y-6 text-center">
-            <div id="printable-ticket" className="p-6 bg-slate-50 border border-slate-300 rounded-2xl space-y-4">
-              <div className="border-b border-slate-200 pb-3">
-                <h4 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight">
+            <div id="printable-ticket" className="p-6 bg-chrome-50 border border-chrome-200 rounded-sm space-y-4">
+              <div className="border-b border-chrome-200 pb-3">
+                <h4 className="font-extrabold text-sm text-chrome-900 uppercase tracking-tight">
                   Phòng Khám Chuyên Khoa Phổi PBL6
                 </h4>
-                <p className="text-xs text-slate-500">Phiếu tiếp đón & thứ tự khám trong ngày</p>
+                <p className="text-xs text-chrome-600">Phiếu tiếp đón & thứ tự khám trong ngày</p>
               </div>
 
               {/* Huge Queue Number */}
               <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-chrome-600 uppercase tracking-wider block">
                   Số Thứ Tự Của Bạn
                 </span>
-                <span className="text-6xl font-black text-sky-600 tracking-tight my-2 block font-mono">
+                <span className="text-6xl font-black text-accent-600 tracking-tight my-2 block font-mono">
                   {assignedEncounter.queue_number ? String(assignedEncounter.queue_number).padStart(2, '0') : '--'}
                 </span>
               </div>
 
-              <div className="text-left bg-white p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                <p><span className="text-slate-500">Bệnh nhân:</span> <b className="text-slate-800">{assignedEncounter.patient?.full_name}</b></p>
-                <p><span className="text-slate-500">Mã BN:</span> <b className="font-mono text-slate-800">{assignedEncounter.patient?.patient_code}</b></p>
-                <p><span className="text-slate-500">Phòng khám:</span> <b className="text-sky-700 font-bold">{assignedEncounter.clinic_room}</b></p>
-                <p><span className="text-slate-500">Mã lượt khám:</span> <b className="font-mono text-slate-600">{assignedEncounter.encounter_code}</b></p>
-                <p><span className="text-slate-500">Thời gian tiếp nhận:</span> {new Date(assignedEncounter.admission_time).toLocaleTimeString('vi-VN')}</p>
+              <div className="text-left bg-white p-3.5 rounded-sm border border-chrome-200 text-xs space-y-1.5">
+                <p><span className="text-chrome-600">Bệnh nhân:</span> <b className="text-chrome-900">{assignedEncounter.patient?.full_name}</b></p>
+                <p><span className="text-chrome-600">Mã BN:</span> <b className="font-mono text-chrome-900">{assignedEncounter.patient?.patient_code}</b></p>
+                <p><span className="text-chrome-600">Phòng khám:</span> <b className="text-accent-600 font-bold">{assignedEncounter.clinic_room}</b></p>
+                <p><span className="text-chrome-600">Mã lượt khám:</span> <b className="font-mono text-chrome-600">{assignedEncounter.encounter_code}</b></p>
+                <p><span className="text-chrome-600">Thời gian tiếp nhận:</span> {new Date(assignedEncounter.admission_time).toLocaleTimeString('vi-VN')}</p>
               </div>
 
-              <p className="text-xs text-slate-400 italic">
+              <p className="text-xs text-chrome-600 italic">
                 * Vui lòng ngồi chờ trước cửa phòng khám và theo dõi số thứ tự trên màn hình LCD.
               </p>
             </div>
@@ -560,7 +560,7 @@ export const ReceptionPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handlePrintTicket}
-                className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
+                className="flex items-center gap-1.5 px-4 py-2 bg-chrome-900 hover:bg-ink-950 text-white rounded-sm text-sm font-semibold transition-colors"
               >
                 <Printer className="w-4 h-4" />
                 In Phiếu STT
@@ -571,7 +571,7 @@ export const ReceptionPage: React.FC = () => {
                   setIsTicketModalOpen(false);
                   handleResetForm();
                 }}
-                className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
+                className="px-5 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded-sm text-sm font-semibold transition-colors"
               >
                 Tiếp Nhận Ca Tiếp Theo
               </button>

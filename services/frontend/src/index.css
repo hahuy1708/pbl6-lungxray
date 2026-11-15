@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 selection:bg-sky-500 selection:text-white;
+    @apply bg-chrome-50 text-chrome-900 selection:bg-accent-500 selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
@@ -46,4 +46,14 @@
   background: linear-gradient(90deg, transparent, #0ea5e9, #38bdf8, transparent);
   box-shadow: 0 0 15px #0ea5e9;
   animation: scanline 2.5s ease-in-out infinite;
+}
+
+/* Tôn trọng người dùng bật giảm chuyển động (hệ điều hành) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

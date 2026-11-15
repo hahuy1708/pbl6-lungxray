@@ -1,5 +1,4 @@
 import React from 'react';
-import { ShieldCheck, AlertTriangle, AlertCircle } from 'lucide-react';
 import { PredictionItem } from '../../types';
 
 interface RiskBadgeProps {
@@ -9,50 +8,50 @@ interface RiskBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
+type Tone = 'flagged' | 'clear' | 'pending';
+
+const TONE: Record<Tone, string> = {
+  flagged: 'border-flag-500/40 bg-flag-50 text-flag-500',
+  clear: 'border-clear-500/40 bg-clear-50 text-clear-500',
+  pending: 'border-chrome-200 bg-chrome-100 text-chrome-600',
+};
+
+const SIZE: Record<NonNullable<RiskBadgeProps['size']>, string> = {
+  sm: 'text-xs px-1.5 py-px',
+  md: 'text-sm px-2 py-0.5',
+  lg: 'text-base px-2.5 py-1 font-semibold',
+};
+
+// Trạng thái kết quả AI. Màu chỉ mang nghĩa trạng thái, không trang trí.
 export const RiskBadge: React.FC<RiskBadgeProps> = ({
   category,
   predictions,
   confidenceScore,
   size = 'md',
 }) => {
-  const flagged = predictions ? predictions.filter(p => p.flagged) : [];
-  const isFlagged = flagged.length > 0 || (category && category.toLowerCase().includes('cảnh báo'));
+  const flagged = predictions ? predictions.filter((p) => p.flagged) : [];
+  const legacyFlag = !!category && category.toLowerCase().includes('cảnh báo');
 
-  let bgClass = 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-emerald-100';
-  let Icon = ShieldCheck;
-  let label = category || 'Không phát hiện bất thường';
+  let tone: Tone = 'pending';
+  let text = 'Chưa phân tích';
 
-  if (isFlagged) {
-    bgClass = 'bg-rose-50 text-rose-700 border-rose-400 shadow-rose-100 animate-pulse';
-    Icon = AlertTriangle;
-    if (flagged.length > 0) {
-      label = `Cảnh báo: ${flagged.map(f => f.name).join(', ')}`;
-    } else {
-      label = category || 'Phát hiện dấu hiệu bất thường';
-    }
-  } else if (!category && !predictions) {
-    bgClass = 'bg-slate-100 text-slate-700 border-slate-300';
-    Icon = AlertCircle;
-    label = 'Chưa phân tích';
+  if (flagged.length > 0 || legacyFlag) {
+    tone = 'flagged';
+    text = flagged.length > 0
+      ? `Vượt ngưỡng: ${flagged.map((f) => f.name).join('; ')}`
+      : category || 'Có dấu hiệu bất thường';
+  } else if (category || predictions) {
+    tone = 'clear';
+    text = 'Không nhóm nào vượt ngưỡng';
   }
 
-  const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1',
-    md: 'text-sm px-3 py-1 gap-1.5',
-    lg: 'text-base px-4 py-2 gap-2 font-semibold',
-  };
-
   return (
-    <div
-      className={`inline-flex items-center rounded-full border shadow-sm ${bgClass} ${sizeClasses[size]}`}
-    >
-      <Icon className={size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />
-      <span>{label}</span>
+    <span className={`inline-flex items-center gap-1.5 rounded-sm border ${TONE[tone]} ${SIZE[size]}`}>
+      <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+      <span>{text}</span>
       {confidenceScore !== undefined && confidenceScore > 0 && (
-        <span className="font-mono text-xs opacity-90 ml-1">
-          ({(confidenceScore * 100).toFixed(1)}%)
-        </span>
+        <span className="font-mono tabular-nums opacity-80">{(confidenceScore * 100).toFixed(1)}%</span>
       )}
-    </div>
+    </span>
   );
 };

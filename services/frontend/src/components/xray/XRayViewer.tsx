@@ -1,16 +1,6 @@
-import React, { useState } from 'react';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  Layers, 
-  Columns, 
-  CheckCircle2, 
-  MessageSquare, 
-  Sparkles,
-  AlertTriangle
-} from 'lucide-react';
-import { XrayImage } from '../../types';
+import React, { useId, useState } from 'react';
+import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { XrayImage, PredictionItem } from '../../types';
 import { RiskBadge } from '../common/RiskBadge';
 import { xrayService } from '../../services/xrayService';
 
@@ -20,297 +10,231 @@ interface XRayViewerProps {
   onCommentSaved?: () => void;
 }
 
-export const XRayViewer: React.FC<XRayViewerProps> = ({
-  xray,
-  isLocked = false,
-  onCommentSaved,
-}) => {
-  const [viewMode, setViewMode] = useState<'overlay' | 'split'>('overlay');
-  const [opacity, setOpacity] = useState<number>(65); // 0% - 100%
-  const [zoom, setZoom] = useState<number>(100);
-  const [doctorComment, setDoctorComment] = useState<string>(
-    xray.ai_result?.doctor_comment || ''
+const MODEL_NOTE =
+  'Phân đoạn: U-Net, huấn luyện trên Montgomery và Shenzhen. ' +
+  'Phân loại: ResNet18, 3 nhóm đa nhãn, mỗi nhóm có ngưỡng riêng được chọn trên tập validation để ưu tiên độ nhạy. ' +
+  'Kết quả chỉ hỗ trợ sàng lọc.';
+
+const segButton = (on: boolean) =>
+  `rounded-sm px-2.5 py-1 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+    on ? 'bg-ink-700 text-white' : 'text-ink-300 hover:text-white'
+  }`;
+
+const iconButton =
+  'rounded-sm p-1.5 text-ink-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500 disabled:opacity-40';
+
+const GroupRow: React.FC<{ p: PredictionItem }> = ({ p }) => {
+  const prob = Math.min(100, p.probability * 100);
+  const thr = Math.min(100, p.threshold * 100);
+  return (
+    <li className="py-3 first:pt-0 last:pb-0">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-medium text-chrome-900">{p.name}</span>
+        <span className={`shrink-0 text-xs font-medium ${p.flagged ? 'text-flag-500' : 'text-clear-500'}`}>
+          {p.flagged ? 'Vượt ngưỡng' : 'Dưới ngưỡng'}
+        </span>
+      </div>
+      <div className="relative mt-2 h-1.5 rounded-sm bg-chrome-200" aria-hidden="true">
+        <div
+          className={`absolute inset-y-0 left-0 rounded-sm ${p.flagged ? 'bg-flag-500' : 'bg-clear-500'}`}
+          style={{ width: `${prob}%` }}
+        />
+        <div className="absolute -bottom-1 -top-1 w-px bg-chrome-900" style={{ left: `${thr}%` }} />
+      </div>
+      <div className="mt-1.5 flex justify-between font-mono text-xs tabular-nums text-chrome-600">
+        <span>Xác suất {prob.toFixed(1)}%</span>
+        <span>Ngưỡng {thr.toFixed(1)}%</span>
+      </div>
+      {p.conditions && p.conditions.length > 0 && (
+        <p className="mt-1 text-xs leading-relaxed text-chrome-600">{p.conditions.join(', ')}</p>
+      )}
+    </li>
   );
-  const [isSavingComment, setIsSavingComment] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+};
 
+export const XRayViewer: React.FC<XRayViewerProps> = ({ xray, isLocked = false, onCommentSaved }) => {
+  const [viewMode, setViewMode] = useState<'overlay' | 'split'>('overlay');
+  const [opacity, setOpacity] = useState(65);
+  const [zoom, setZoom] = useState(100);
+  const [comment, setComment] = useState(xray.ai_result?.doctor_comment || '');
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+
+  const opacityId = useId();
+  const commentId = useId();
   const aiResult = xray.ai_result;
+  const predictions: PredictionItem[] = aiResult?.predictions ?? [];
+  const hasOverlay = !!aiResult?.overlay_image_url;
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 20, 250));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 20, 50));
-  const handleResetZoom = () => setZoom(100);
+  const zoomBy = (delta: number) => setZoom((z) => Math.min(250, Math.max(50, z + delta)));
 
-  const handleSaveDoctorComment = async () => {
+  const saveComment = async () => {
     if (!aiResult) return;
-    setIsSavingComment(true);
-    setSaveSuccess(false);
+    setSaving(true);
+    setStatus(null);
     try {
-      await xrayService.updateDoctorComment(aiResult.id, doctorComment);
-      setSaveSuccess(true);
-      if (onCommentSaved) onCommentSaved();
-      setTimeout(() => setSaveSuccess(false), 2000);
-    } catch (err) {
-      alert('Lỗi khi lưu nhận xét của bác sĩ.');
+      await xrayService.updateDoctorComment(aiResult.id, comment);
+      setStatus({ kind: 'ok', text: 'Đã lưu nhận xét vào ca khám.' });
+      onCommentSaved?.();
+    } catch {
+      setStatus({ kind: 'error', text: 'Chưa lưu được nhận xét. Kiểm tra kết nối rồi thử lại.' });
     } finally {
-      setIsSavingComment(false);
+      setSaving(false);
     }
   };
 
+  const scale = { transform: `scale(${zoom / 100})`, transformOrigin: 'center center' };
+
   return (
-    <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-xl text-white">
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-5 py-3 bg-slate-950/80 border-b border-slate-800/80 gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-            Trực Quan Hóa X-Quang & Phân Đoạn AI
-          </span>
-          {aiResult && (
-            <RiskBadge
-              category={aiResult.predicted_category}
-              predictions={aiResult.predictions}
-              confidenceScore={Number(aiResult.confidence_score)}
-              size="sm"
-            />
-          )}
+    <section aria-label="Ảnh X-quang và kết quả phân tích" className="overflow-hidden rounded-sm border border-chrome-900 bg-ink-950 text-ink-100">
+      {/* Thanh công cụ */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink-800 px-3 py-2">
+        <div role="group" aria-label="Chế độ xem" className="inline-flex gap-1 rounded-sm border border-ink-700 p-0.5">
+          <button type="button" aria-pressed={viewMode === 'overlay'} className={segButton(viewMode === 'overlay')} onClick={() => setViewMode('overlay')}>
+            Phủ lớp
+          </button>
+          <button type="button" aria-pressed={viewMode === 'split'} className={segButton(viewMode === 'split')} onClick={() => setViewMode('split')}>
+            So sánh
+          </button>
         </div>
 
-        {/* View Controls */}
-        <div className="flex items-center gap-2">
-          {/* View Mode Toggle */}
-          <div className="flex bg-slate-800/80 p-0.5 rounded-lg border border-slate-700/60">
-            <button
-              onClick={() => setViewMode('overlay')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'overlay'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Chế độ xếp chồng lớp mặt nạ (Overlay)"
-            >
-              <Layers className="w-3.5 h-3.5" />
-              Lớp Phủ (Overlay)
-            </button>
-            <button
-              onClick={() => setViewMode('split')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'split'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-              title="Chế độ so sánh song song hai ảnh (Split View)"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              Song Song (Split)
-            </button>
-          </div>
-
-          {/* Opacity Slider for Overlay */}
-          {viewMode === 'overlay' && aiResult?.overlay_image_url && (
-            <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700/60 text-xs">
-              <span className="text-slate-400">Độ mờ:</span>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {viewMode === 'overlay' && hasOverlay && (
+            <div className="flex items-center gap-2 text-sm">
+              <label htmlFor={opacityId} className="text-ink-300">Độ mờ lớp phủ</label>
               <input
+                id={opacityId}
                 type="range"
-                min="0"
-                max="100"
+                min={0}
+                max={100}
                 value={opacity}
                 onChange={(e) => setOpacity(Number(e.target.value))}
-                className="w-20 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                className="w-24 accent-accent-500"
               />
-              <span className="font-mono text-slate-300 w-7">{opacity}%</span>
+              <output htmlFor={opacityId} className="w-10 font-mono tabular-nums text-ink-100">{opacity}%</output>
             </div>
           )}
 
-          {/* Zoom controls */}
-          <div className="flex items-center gap-1 bg-slate-800/80 p-0.5 rounded-lg border border-slate-700/60">
-            <button
-              onClick={handleZoomOut}
-              className="p-1 text-slate-400 hover:text-white rounded transition-colors"
-              title="Thu nhỏ"
-            >
-              <ZoomOut className="w-4 h-4" />
+          <div role="group" aria-label="Phóng to ảnh" className="inline-flex items-center gap-0.5">
+            <button type="button" aria-label="Thu nhỏ" className={iconButton} onClick={() => zoomBy(-20)}>
+              <ZoomOut className="h-4 w-4" />
             </button>
-            <span className="font-mono text-xs text-slate-300 px-1">{zoom}%</span>
-            <button
-              onClick={handleZoomIn}
-              className="p-1 text-slate-400 hover:text-white rounded transition-colors"
-              title="Phóng to"
-            >
-              <ZoomIn className="w-4 h-4" />
+            <span className="w-12 text-center font-mono text-sm tabular-nums text-ink-100">{zoom}%</span>
+            <button type="button" aria-label="Phóng to" className={iconButton} onClick={() => zoomBy(20)}>
+              <ZoomIn className="h-4 w-4" />
             </button>
-            <button
-              onClick={handleResetZoom}
-              className="p-1 text-slate-400 hover:text-white rounded transition-colors ml-1"
-              title="Đặt lại kích thước"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
+            <button type="button" aria-label="Đặt lại kích thước" className={iconButton} onClick={() => setZoom(100)}>
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Canvas View Area */}
-      <div className="relative min-h-[460px] max-h-[580px] overflow-auto flex items-center justify-center p-6 bg-radial from-slate-900 to-black select-none">
+      {/* Vùng xem ảnh */}
+      <div className="flex min-h-[320px] max-h-[70vh] items-center justify-center overflow-auto p-4 md:min-h-[460px] md:max-h-[620px]">
         {viewMode === 'overlay' ? (
-          <div
-            className="relative transition-transform duration-150 inline-block shadow-2xl rounded-lg overflow-hidden border border-slate-700/50"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center center' }}
-          >
-            {/* Ảnh gốc X-quang */}
+          <div className="relative inline-block max-w-full transition-transform duration-150" style={scale}>
             <img
               src={xray.image_url}
-              alt="X-ray ngực gốc"
-              className="max-h-[440px] w-auto object-contain block filter contrast-110"
+              alt="Ảnh X-quang ngực"
+              className="block h-auto max-w-full w-auto select-none max-h-[62vh] md:max-h-[580px]"
             />
-
-            {/* Lớp Overlay viền contour xanh + Bounding Box đỏ sinh từ U-Net */}
-            {aiResult?.overlay_image_url && (
+            {hasOverlay && (
               <img
-                src={aiResult.overlay_image_url}
-                alt="Overlay phân đoạn phế trường"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-150 mix-blend-screen"
+                src={aiResult!.overlay_image_url}
+                alt="Vùng phổi được phân đoạn"
+                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
                 style={{ opacity: opacity / 100 }}
               />
             )}
           </div>
         ) : (
-          /* Split View Mode */
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 transition-transform duration-150 w-full max-w-4xl"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center center' }}
-          >
-            <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
-              <span className="text-xs text-slate-400 block mb-1 font-medium">Ảnh Chụp X-Quang Gốc (2D)</span>
-              <img
-                src={xray.image_url}
-                alt="Ảnh gốc"
-                className="max-h-[380px] w-auto mx-auto object-contain rounded-lg"
-              />
-            </div>
-            <div className="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
-              <span className="text-xs text-sky-400 block mb-1 font-medium">Phân Đoạn & BBox U-Net</span>
+          <div className="grid w-full grid-cols-1 gap-4 transition-transform duration-150 md:grid-cols-2" style={scale}>
+            <figure>
+              <figcaption className="mb-2 font-mono text-xs text-ink-400">Ảnh gốc</figcaption>
+              <img src={xray.image_url} alt="Ảnh X-quang gốc" className="mx-auto h-auto max-w-full w-auto select-none max-h-[56vh]" />
+            </figure>
+            <figure>
+              <figcaption className="mb-2 font-mono text-xs text-ink-400">Vùng phổi và khung bao</figcaption>
               <img
                 src={aiResult?.overlay_image_url || aiResult?.mask_image_url || xray.image_url}
-                alt="Phân đoạn phế trường"
-                className="max-h-[380px] w-auto mx-auto object-contain rounded-lg"
+                alt="Vùng phổi được phân đoạn"
+                className="mx-auto h-auto max-w-full w-auto select-none max-h-[56vh]"
               />
-            </div>
+            </figure>
           </div>
         )}
       </div>
 
-      {/* Bottom AI Diagnostic Assessment & Doctor Notes */}
-      {aiResult && (
-        <div className="p-5 bg-slate-950 border-t border-slate-800/80 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <span className="text-xs text-slate-400 block">Kết quả phân loại tổn thương phổi (ResNet18 3 nhóm):</span>
-              <div className="flex items-center gap-3 mt-1">
-                <RiskBadge
-                  category={aiResult.predicted_category}
-                  predictions={aiResult.predictions}
-                  confidenceScore={Number(aiResult.confidence_score)}
-                  size="lg"
-                />
-                <span className="text-xs text-slate-400">
-                  Phế trường trích xuất bằng mô hình U-Net (Montgomery & Shenzhen)
-                </span>
-              </div>
+      {/* Kết quả và nhận xét */}
+      {aiResult ? (
+        <div className="border-t border-ink-800 bg-white text-chrome-900">
+          <div className="grid gap-6 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:p-5">
+            <div className="space-y-3">
+              <p className="text-sm text-chrome-600">Kết quả phân loại</p>
+              <RiskBadge
+                category={aiResult.predicted_category}
+                predictions={predictions}
+                confidenceScore={Number(aiResult.confidence_score)}
+                size="lg"
+              />
+              <p className="text-sm leading-relaxed text-chrome-600">
+                Kết quả chỉ hỗ trợ sàng lọc, không thay thế chẩn đoán lâm sàng.
+              </p>
+              <details className="text-sm text-chrome-600">
+                <summary className="cursor-pointer text-chrome-900 underline underline-offset-2">Thông tin mô hình</summary>
+                <p className="mt-2 leading-relaxed">{MODEL_NOTE}</p>
+              </details>
             </div>
+
+            {predictions.length > 0 ? (
+              <ul aria-label="Xác suất từng nhóm" className="divide-y divide-chrome-200">
+                {predictions.map((p) => (
+                  <GroupRow key={p.id} p={p} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-chrome-600">Không có dữ liệu phân loại theo nhóm.</p>
+            )}
           </div>
 
-          {/* 3 Groups Prediction Cards */}
-          {aiResult.predictions && aiResult.predictions.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-              {aiResult.predictions.map((p) => {
-                const probPercent = (p.probability * 100).toFixed(1);
-                const threshPercent = (p.threshold * 100).toFixed(1);
-                return (
-                  <div
-                    key={p.id}
-                    className={`p-3 rounded-xl border transition-all ${
-                      p.flagged
-                        ? 'bg-rose-950/40 border-rose-600/60 shadow-lg shadow-rose-950/30'
-                        : 'bg-slate-900/80 border-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="font-semibold text-xs text-slate-200 truncate">
-                        {p.name}
-                      </span>
-                      <span
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
-                          p.flagged
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                        }`}
-                      >
-                        {p.flagged ? 'Phát hiện' : 'Âm tính'}
-                      </span>
-                    </div>
-
-                    {/* Probability Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] text-slate-400">
-                        <span>Xác suất: <b className="text-slate-200 font-mono">{probPercent}%</b></span>
-                        <span>Ngưỡng: <span className="font-mono">{threshPercent}%</span></span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            p.flagged ? 'bg-rose-500' : 'bg-emerald-500'
-                          }`}
-                          style={{ width: `${Math.min(Number(probPercent), 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Conditions */}
-                    {p.conditions && p.conditions.length > 0 && (
-                      <div className="mt-2 text-[10px] text-slate-400 truncate" title={p.conditions.join(', ')}>
-                        Bao gồm: {p.conditions.join(', ')}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Doctor Comment & Confirmation */}
-          <div className="pt-3 border-t border-slate-800/60">
-            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
-              Đánh giá & Nhận xét chuyên môn của Bác sĩ (Doctor's Note):
+          <div className="border-t border-chrome-200 p-4 md:p-5">
+            <label htmlFor={commentId} className="block text-sm font-medium text-chrome-900">
+              Nhận xét của bác sĩ
             </label>
-            <div className="flex flex-col sm:flex-row gap-2.5">
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
               <input
+                id={commentId}
                 type="text"
                 disabled={isLocked}
-                value={doctorComment}
-                onChange={(e) => setDoctorComment(e.target.value)}
-                placeholder="Ví dụ: Đồng thuận với kết quả AI, phát hiện nốt mờ hạ đòn đỉnh phổi phải..."
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Ví dụ: đồng ý với kết quả AI, nốt mờ vùng đỉnh phổi phải"
+                className="min-w-0 flex-1 rounded-sm border border-chrome-200 bg-white px-3 py-2 text-sm text-chrome-900 placeholder:text-chrome-600/70 focus:outline focus:outline-2 focus:outline-accent-500 disabled:bg-chrome-100 disabled:text-chrome-600"
               />
               {!isLocked && (
                 <button
-                  onClick={handleSaveDoctorComment}
-                  disabled={isSavingComment}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-50"
+                  type="button"
+                  onClick={saveComment}
+                  disabled={saving}
+                  className="rounded-sm bg-accent-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:opacity-50"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  {isSavingComment ? 'Đang lưu...' : 'Xác Nhận & Lưu Kết Quả'}
+                  {saving ? 'Đang lưu…' : 'Lưu nhận xét'}
                 </button>
               )}
             </div>
-            {saveSuccess && (
-              <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Đã lưu nhận xét chuyên môn vào hồ sơ ca khám.
+            {status && (
+              <p role="status" className={`mt-2 text-sm ${status.kind === 'ok' ? 'text-clear-500' : 'text-flag-500'}`}>
+                {status.text}
               </p>
             )}
           </div>
         </div>
+      ) : (
+        <div className="border-t border-ink-800 px-4 py-3 text-sm text-ink-300">
+          Chưa có kết quả AI cho ảnh này.
+        </div>
       )}
-    </div>
+    </section>
   );
 };

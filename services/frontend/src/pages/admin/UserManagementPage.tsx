@@ -157,15 +157,15 @@ export const UserManagementPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
-            <Users className="w-7 h-7 text-sky-600" />
+          <h1 className="text-2xl font-bold text-chrome-900 flex items-center gap-2.5">
+            <Users className="w-7 h-7 text-accent-600" />
             Quản Lý Người Dùng & Phân Quyền
           </h1>
         </div>
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+          className="px-4 py-2.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-bold rounded-sm transition-all flex items-center gap-1.5"
         >
           <UserPlus className="w-4 h-4" />
           Cấp Mới Tài Khoản
@@ -173,11 +173,11 @@ export const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-sm border border-chrome-200">
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          className="px-3 py-2 bg-chrome-50 border border-chrome-200 rounded-sm text-xs font-medium text-chrome-900 focus:outline focus:outline-2 focus:outline-accent-500"
         >
           <option value="">Tất cả vai trò (Role)</option>
           <option value="DOCTOR">Bác sĩ (DOCTOR)</option>
@@ -191,22 +191,22 @@ export const UserManagementPage: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && loadData()}
           placeholder="Tìm theo username hoặc họ tên..."
-          className="px-3.5 py-2 rounded-xl border border-slate-300 text-xs w-64 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          className="px-3.5 py-2 rounded-sm border border-chrome-200 text-xs w-64 focus:outline focus:outline-2 focus:outline-accent-500"
         />
 
         <button
           onClick={loadData}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors"
+          className="px-4 py-2 bg-chrome-100 hover:bg-chrome-200 text-chrome-900 text-xs font-semibold rounded-sm transition-colors"
         >
           Lọc
         </button>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-chrome-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+            <thead className="bg-chrome-50 border-b border-chrome-200 text-chrome-600 font-bold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Tên Đăng Nhập</th>
                 <th className="py-3.5 px-4">Họ và Tên</th>
@@ -217,26 +217,26 @@ export const UserManagementPage: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-chrome-100 text-chrome-900">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-sky-700">
+                <tr key={u.id} className="hover:bg-chrome-50/80 transition-colors">
+                  <td className="py-3.5 px-4 font-mono font-bold text-accent-600">
                     {u.username}
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-800">
+                  <td className="py-3.5 px-4 font-bold text-chrome-900">
                     {u.full_name}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${u.role === 'ADMIN'
+                    <span className={`px-2 py-0.5 rounded-sm font-bold text-[10px] ${u.role === 'ADMIN'
                       ? 'bg-purple-100 text-purple-700'
                       : u.role === 'DOCTOR'
-                        ? 'bg-sky-100 text-sky-700'
-                        : 'bg-emerald-100 text-emerald-700'
+                        ? 'bg-chrome-100 text-accent-600'
+                        : 'bg-clear-50 text-clear-500'
                       }`}>
                       {u.role}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-slate-600 font-medium">
+                  <td className="py-3.5 px-4 text-chrome-600 font-medium">
                     {u.name_room || u.nameRoom || '—'}
                   </td>
                   <td className="py-3.5 px-4 font-mono">
@@ -244,28 +244,28 @@ export const UserManagementPage: React.FC = () => {
                   </td>
                   <td className="py-3.5 px-4">
                     {u.is_active ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hoạt động
+                      <span className="inline-flex items-center gap-1 text-clear-500 font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-clear-500" /> Hoạt động
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-rose-600 font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Bị khóa
+                      <span className="inline-flex items-center gap-1 text-flag-500 font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-flag-500" /> Bị khóa
                       </span>
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-right space-x-1.5">
                     <button
                       onClick={() => handleResetPassword(u)}
-                      className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-1.5 text-chrome-600 hover:text-amber-600 hover:bg-chrome-100 rounded-sm transition-colors"
                       title="Đặt lại mật khẩu tạm"
                     >
                       <KeyRound className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleToggleStatus(u)}
-                      className={`p-1.5 rounded-lg transition-colors ${u.is_active
-                        ? 'text-rose-500 hover:bg-rose-50'
-                        : 'text-emerald-600 hover:bg-emerald-50'
+                      className={`p-1.5 rounded-sm transition-colors ${u.is_active
+                        ? 'text-flag-500 hover:bg-flag-50'
+                        : 'text-clear-500 hover:bg-clear-50'
                         }`}
                       title={u.is_active ? 'Khóa tài khoản' : 'Mở khóa'}
                     >
@@ -288,37 +288,37 @@ export const UserManagementPage: React.FC = () => {
       >
         <form onSubmit={handleCreateUser} className="space-y-4">
           {createMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl">
+            <div className="p-3 bg-flag-50 border border-flag-50 text-flag-500 text-xs rounded-sm">
               {createMsg}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Tên đăng nhập <span className="text-rose-500">*</span></label>
+            <label className="block text-xs font-bold text-chrome-900 mb-1">Tên đăng nhập <span className="text-flag-500">*</span></label>
             <input
               type="text"
               required
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
               placeholder="VD: bs.nguyenvana"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Họ và tên đầy đủ <span className="text-rose-500">*</span></label>
+            <label className="block text-xs font-bold text-chrome-900 mb-1">Họ và tên đầy đủ <span className="text-flag-500">*</span></label>
             <input
               type="text"
               required
               value={newFullName}
               onChange={(e) => setNewFullName(e.target.value)}
               placeholder="VD: BSCKI Nguyễn Văn A"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Vai trò quyền hạn (Role) <span className="text-rose-500">*</span></label>
+            <label className="block text-xs font-bold text-chrome-900 mb-1">Vai trò quyền hạn (Role) <span className="text-flag-500">*</span></label>
             <select
               value={newRole}
               onChange={(e) => {
@@ -329,7 +329,7 @@ export const UserManagementPage: React.FC = () => {
                   setNewNameRoom('');
                 }
               }}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
             >
               <option value="DOCTOR">Bác sĩ (DOCTOR)</option>
               <option value="NURSE">Y tá / Điều dưỡng (NURSE)</option>
@@ -339,15 +339,15 @@ export const UserManagementPage: React.FC = () => {
 
           {/* CHỈ HIỂN THỊ PHÂN PHÒNG KHI ROLE LÀ DOCTOR */}
           {newRole === 'DOCTOR' && (
-            <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-2xl space-y-1.5">
-              <label className="block text-xs font-bold text-sky-900">
-                Phòng khám phân công (Mỗi bác sĩ 1 phòng riêng) <span className="text-rose-500">*</span>
+            <div className="p-3.5 bg-chrome-50/60 border border-chrome-100 rounded-sm space-y-1.5">
+              <label className="block text-xs font-bold text-accent-600">
+                Phòng khám phân công (Mỗi bác sĩ 1 phòng riêng) <span className="text-flag-500">*</span>
               </label>
 
               {isLoadingRooms ? (
-                <div className="text-xs text-slate-500 py-1.5">Đang tải danh sách phòng khả dụng...</div>
+                <div className="text-xs text-chrome-600 py-1.5">Đang tải danh sách phòng khả dụng...</div>
               ) : availableRooms.length === 0 ? (
-                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-sm text-xs text-amber-800">
                   ⚠️ Tất cả các phòng khám hiện tại đã được phân công cho bác sĩ khác. Vui lòng thêm phòng mới hoặc giải phóng phòng trước.
                 </div>
               ) : (
@@ -360,7 +360,7 @@ export const UserManagementPage: React.FC = () => {
                     const found = availableRooms.find((r) => r.id === rId);
                     setNewNameRoom(found ? found.room_name : '');
                   }}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                  className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 bg-white"
                 >
                   <option value="">-- Chọn phòng khám còn trống --</option>
                   {availableRooms.map((room) => (
@@ -370,39 +370,39 @@ export const UserManagementPage: React.FC = () => {
                   ))}
                 </select>
               )}
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-chrome-600">
                 * Các phòng đã được bác sĩ khác đảm nhận sẽ tự động bị ẩn khỏi danh sách.
               </p>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Số điện thoại liên hệ</label>
+            <label className="block text-xs font-bold text-chrome-900 mb-1">Số điện thoại liên hệ</label>
             <input
               type="tel"
               value={newPhone}
               onChange={(e) => setNewPhone(e.target.value)}
               placeholder="0912345678"
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
             />
           </div>
 
-          <p className="text-xs text-slate-400 italic">
+          <p className="text-xs text-chrome-600 italic">
             * Hệ thống sẽ tự động tạo mật khẩu ngẫu nhiên ban đầu. Người dùng sẽ phải tự đổi mật khẩu khi đăng nhập lần đầu tiên.
           </p>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-chrome-100">
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+              className="px-4 py-2 text-xs font-semibold text-chrome-600 hover:bg-chrome-100 rounded-sm"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={isCreating}
-              className="px-5 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="px-5 py-2 text-xs font-bold text-white bg-accent-600 hover:bg-accent-500 rounded-sm transition-all disabled:opacity-50"
             >
               {isCreating ? 'Đang tạo...' : 'Tạo Tài Khoản'}
             </button>
@@ -422,12 +422,12 @@ export const UserManagementPage: React.FC = () => {
           maxWidth="sm"
         >
           <div className="space-y-4 text-center">
-            <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto" />
-            <p className="text-xs text-slate-600">
-              Mật khẩu tạm thời cho tài khoản <b className="font-mono text-slate-800">{passwordResult.username}</b>:
+            <CheckCircle className="w-12 h-12 text-clear-500 mx-auto" />
+            <p className="text-xs text-chrome-600">
+              Mật khẩu tạm thời cho tài khoản <b className="font-mono text-chrome-900">{passwordResult.username}</b>:
             </p>
-            <div className="flex items-center justify-between p-3 bg-slate-100 rounded-xl border border-slate-300">
-              <span className="font-mono font-extrabold text-lg text-sky-700 tracking-wider select-all ml-2">
+            <div className="flex items-center justify-between p-3 bg-chrome-100 rounded-sm border border-chrome-200">
+              <span className="font-mono font-extrabold text-lg text-accent-600 tracking-wider select-all ml-2">
                 {passwordResult.tempPass}
               </span>
               <button
@@ -437,23 +437,23 @@ export const UserManagementPage: React.FC = () => {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1 shadow-xs transition-colors"
+                className="px-2.5 py-1.5 bg-white border border-chrome-200 hover:border-chrome-200 rounded-sm text-xs font-semibold text-chrome-900 flex items-center gap-1 transition-colors"
                 title="Sao chép mật khẩu"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-600 font-bold">Đã chép</span>
+                    <Check className="w-3.5 h-3.5 text-clear-500" />
+                    <span className="text-clear-500 font-bold">Đã chép</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                    <Copy className="w-3.5 h-3.5 text-chrome-600" />
                     <span>Sao chép</span>
                   </>
                 )}
               </button>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-chrome-600">
               Vui lòng sao chép và bàn giao cho nhân viên. Nhân viên sẽ được yêu cầu đổi mật khẩu ngay khi đăng nhập lần đầu tiên.
             </p>
             <button
@@ -461,7 +461,7 @@ export const UserManagementPage: React.FC = () => {
                 setPasswordResult(null);
                 setCopied(false);
               }}
-              className="w-full py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-colors"
+              className="w-full py-2 bg-chrome-900 text-white rounded-sm text-xs font-bold hover:bg-ink-950 transition-colors"
             >
               Đã Ghi Nhận
             </button>

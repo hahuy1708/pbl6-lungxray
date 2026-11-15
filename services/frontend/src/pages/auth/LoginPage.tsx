@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Lock, User as UserIcon, AlertCircle } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -48,85 +48,72 @@ export const LoginPage: React.FC = () => {
       if (typeof detail === 'string') {
         setErrorMessage(detail);
       } else if (err.response?.status === 400) {
-        setErrorMessage('Tên đăng nhập hoặc mật khẩu không chính xác.');
+        setErrorMessage('Tên đăng nhập hoặc mật khẩu không đúng.');
       } else if (err.response?.status === 423) {
-        setErrorMessage(detail || 'Tài khoản đang bị tạm khóa. Vui lòng thử lại sau.');
+        setErrorMessage(detail || 'Tài khoản đang bị khoá tạm thời. Thử lại sau.');
       } else {
-        setErrorMessage('Không thể kết nối máy chủ. Vui lòng kiểm tra backend.');
+        setErrorMessage('Chưa kết nối được máy chủ. Thử lại sau.');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const field =
+    'mt-1 w-full rounded-sm border border-chrome-200 bg-white px-3 py-2 text-sm text-chrome-900 placeholder:text-chrome-600/70 focus:outline focus:outline-2 focus:outline-accent-500';
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 text-slate-100">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
-            <Activity className="w-9 h-9" />
+    <div className="flex min-h-screen items-center justify-center bg-chrome-50 p-4">
+      <div className="w-full max-w-sm rounded-sm border border-chrome-200 bg-white p-6 sm:p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-accent-600 text-white">
+            <Activity className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div>
+            <h1 className="text-lg font-semibold text-chrome-900">LungAI X-ray</h1>
+            <p className="text-xs text-chrome-600">Chẩn đoán X-quang phổi và quản lý khám bệnh</p>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">
-            LungAI Hospital
-          </h1>
-          <p className="text-xs text-slate-300">
-            Hệ thống Chẩn đoán X-quang Phổi & Quản lý Quy trình Khám
-          </p>
         </div>
 
-        {/* Khung báo lỗi trực quan */}
         {errorMessage && (
-          <div className="p-3.5 bg-rose-500/20 border border-rose-500/40 rounded-xl text-rose-200 text-sm flex items-start gap-2.5">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <span className="font-medium">{errorMessage}</span>
+          <div role="alert" className="mb-4 rounded-sm border border-flag-500/40 bg-flag-50 px-3 py-2.5 text-sm text-flag-500">
+            {errorMessage}
           </div>
         )}
 
-        {/* Form đăng nhập */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-              Tên đăng nhập
-            </label>
-            <div className="relative">
-              <UserIcon className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                required
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Nhập username"
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm"
-              />
-            </div>
+            <label htmlFor="username" className="block text-sm font-medium text-chrome-900">Tên đăng nhập</label>
+            <input
+              id="username"
+              type="text"
+              required
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={field}
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-              Mật khẩu
-            </label>
-            <div className="relative">
-              <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu"
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm"
-              />
-            </div>
+            <label htmlFor="password" className="block text-sm font-medium text-chrome-900">Mật khẩu</label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={field}
+            />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-sky-500/30 transition-all disabled:opacity-50 text-sm flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full rounded-sm bg-accent-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:opacity-50"
           >
-            {isLoading ? 'Đang xác thực...' : 'Đăng Nhập Vào Hệ Thống'}
+            {isLoading ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </button>
         </form>
       </div>

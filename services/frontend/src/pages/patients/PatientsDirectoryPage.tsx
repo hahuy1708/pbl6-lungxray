@@ -18,6 +18,7 @@ import { patientService } from '../../services/patientService';
 import { useAuthStore } from '../../stores/authStore';
 import { Modal } from '../../components/common/Modal';
 import { PatientHistoryModal } from '../../components/patient/PatientHistoryModal';
+import { maskCard } from '../../utils/format';
 
 export const PatientsDirectoryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -103,20 +104,20 @@ export const PatientsDirectoryPage: React.FC = () => {
       {/* Page Header by Role */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-chrome-900 flex items-center gap-2.5">
             {isDoctor ? (
               <>
-                <FileText className="w-7 h-7 text-sky-600" />
+                <FileText className="w-7 h-7 text-accent-600" />
                 Tra Cứu Hồ Sơ & Lịch Sử Bệnh Nhân
               </>
             ) : (
               <>
-                <UserCheck className="w-7 h-7 text-sky-600" />
+                <UserCheck className="w-7 h-7 text-accent-600" />
                 Tra Cứu & Quản Lý Hồ Sơ Bệnh Nhân
               </>
             )}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-chrome-600 mt-1">
             {isDoctor
               ? 'Tra cứu thông tin bệnh nhân và lịch sử các đợt khám.'
               : 'Tra cứu thông tin và cập nhật thông tin liên hệ.'}
@@ -126,18 +127,18 @@ export const PatientsDirectoryPage: React.FC = () => {
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-chrome-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Nhập từ khóa tìm kiếm..."
-              className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full pl-10 pr-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs whitespace-nowrap"
+            className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-xs font-bold rounded-sm transition-colors whitespace-nowrap"
           >
             Tìm Kiếm
           </button>
@@ -145,10 +146,10 @@ export const PatientsDirectoryPage: React.FC = () => {
       </div>
 
       {/* Patients Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-chrome-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+            <thead className="bg-chrome-50 border-b border-chrome-200 text-chrome-600 font-bold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Mã BN</th>
                 <th className="py-3.5 px-4">Họ và Tên</th>
@@ -159,38 +160,38 @@ export const PatientsDirectoryPage: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-chrome-100 text-chrome-900">
               {patients.length > 0 ? (
                 patients.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-sky-700">
+                  <tr key={p.id} className="hover:bg-chrome-50/80 transition-colors">
+                    <td className="py-3.5 px-4 font-mono font-bold text-accent-600">
                       <button
                         onClick={() => handleOpenHistory(p)}
-                        className="hover:underline text-sky-700 font-bold focus:outline-none"
+                        className="hover:underline text-accent-600 font-bold focus:outline-none"
                         title="Bấm để xem lịch sử khám bệnh"
                       >
                         {p.patient_code}
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-800">
+                    <td className="py-3.5 px-4 font-bold text-chrome-900">
                       <button
                         onClick={() => handleOpenHistory(p)}
-                        className="hover:text-sky-600 text-left font-bold focus:outline-none"
+                        className="hover:text-accent-600 text-left font-bold focus:outline-none"
                         title="Bấm để xem lịch sử khám bệnh"
                       >
                         {p.full_name}
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600">
-                      {p.card_number}
+                    <td className="py-3.5 px-4 font-mono text-chrome-600">
+                      {maskCard(p.card_number)}
                     </td>
                     <td className="py-3.5 px-4">
                       {p.date_of_birth} ({p.gender === 'MALE' ? 'Nam' : p.gender === 'FEMALE' ? 'Nữ' : 'Khác'})
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600">
+                    <td className="py-3.5 px-4 font-mono text-chrome-600">
                       {p.phone}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600">
+                    <td className="py-3.5 px-4 font-mono text-chrome-600">
                       {p.insurance_number || '—'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -198,10 +199,10 @@ export const PatientsDirectoryPage: React.FC = () => {
                         /* CHỈ DÀNH CHO BÁC SĨ: Chỉ có nút Xem Lịch Sử Khám, KHÔNG có Sửa và Cấp Khám */
                         <button
                           onClick={() => handleOpenHistory(p)}
-                          className="px-3 py-1.5 text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 rounded-lg font-bold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                          className="px-3 py-1.5 text-accent-600 hover:text-accent-600 bg-chrome-50 hover:bg-chrome-100 border border-chrome-200/80 rounded-sm font-bold inline-flex items-center gap-1.5 transition-colors"
                           title="Xem bệnh sử và toàn bộ các đợt khám của bệnh nhân"
                         >
-                          <History className="w-3.5 h-3.5 text-sky-600" />
+                          <History className="w-3.5 h-3.5 text-accent-600" />
                           Xem Lịch Sử Khám
                         </button>
                       ) : (
@@ -209,14 +210,14 @@ export const PatientsDirectoryPage: React.FC = () => {
                         <div className="inline-flex items-center gap-2">
                           <button
                             onClick={() => handleOpenHistory(p)}
-                            className="p-1.5 text-slate-500 hover:text-sky-700 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1.5 text-chrome-600 hover:text-accent-600 hover:bg-chrome-100 rounded-sm transition-colors"
                             title="Xem lịch sử các đợt khám cũ"
                           >
                             <History className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleOpenEdit(p)}
-                            className="px-2.5 py-1 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium inline-flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1 text-chrome-600 hover:text-ink-950 bg-chrome-100 hover:bg-chrome-200 rounded-sm font-medium inline-flex items-center gap-1 transition-colors"
                             title="Chỉnh sửa thông tin liên hệ"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -224,7 +225,7 @@ export const PatientsDirectoryPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => navigate(`/nurse/queue?patientId=${p.id}`)}
-                            className="px-2.5 py-1 text-sky-700 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 rounded-lg font-bold inline-flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1 text-accent-600 hover:text-accent-600 bg-chrome-50 hover:bg-chrome-100 rounded-sm font-bold inline-flex items-center gap-1 transition-colors"
                             title="Phân phòng và cấp số thứ tự khám"
                           >
                             <Ticket className="w-3.5 h-3.5" />
@@ -237,7 +238,7 @@ export const PatientsDirectoryPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-chrome-600">
                     {isLoading ? 'Đang tải dữ liệu bệnh nhân...' : 'Không tìm thấy hồ sơ bệnh nhân nào phù hợp.'}
                   </td>
                 </tr>
@@ -267,48 +268,48 @@ export const PatientsDirectoryPage: React.FC = () => {
         >
           <form onSubmit={handleSaveEdit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Số điện thoại liên hệ</label>
+              <label className="block text-xs font-bold text-chrome-900 mb-1">Số điện thoại liên hệ</label>
               <input
                 type="tel"
                 required
                 value={editPhone}
                 onChange={(e) => setEditPhone(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Mã thẻ BHYT</label>
+              <label className="block text-xs font-bold text-chrome-900 mb-1">Mã thẻ BHYT</label>
               <input
                 type="text"
                 value={editInsurance}
                 onChange={(e) => setEditInsurance(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono uppercase"
+                className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500 font-mono uppercase"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Địa chỉ thường trú / tạm trú</label>
+              <label className="block text-xs font-bold text-chrome-900 mb-1">Địa chỉ thường trú / tạm trú</label>
               <textarea
                 rows={2}
                 value={editAddress}
                 onChange={(e) => setEditAddress(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3.5 py-2 rounded-sm border border-chrome-200 text-sm focus:outline focus:outline-2 focus:outline-accent-500"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-chrome-100">
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="px-4 py-2 text-xs font-semibold text-chrome-600 hover:bg-chrome-100 rounded-sm"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-5 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-sm transition-all disabled:opacity-50"
+                className="px-5 py-2 text-xs font-bold text-white bg-accent-600 hover:bg-accent-500 rounded-sm transition-all disabled:opacity-50"
               >
                 {isSaving ? 'Đang lưu...' : 'Lưu Thay Đổi'}
               </button>

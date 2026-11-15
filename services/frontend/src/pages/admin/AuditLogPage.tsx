@@ -58,18 +58,18 @@ export const AuditLogPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
-            <ShieldCheck className="w-7 h-7 text-sky-600" />
+          <h1 className="text-2xl font-bold text-chrome-900 flex items-center gap-2.5">
+            <ShieldCheck className="w-7 h-7 text-accent-600" />
             Nhật Ký Kiểm Toán Hệ Thống (Audit Log - UC011)
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-chrome-600 mt-1">
             Tra soát toàn bộ lịch sử thao tác, truy vết sự cố, tính minh bạch dữ liệu y tế và biến động bản ghi.
           </p>
         </div>
 
         <button
           onClick={handleExportExcel}
-          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+          className="px-4 py-2.5 bg-clear-500 hover:bg-clear-500 text-white text-xs font-bold rounded-sm transition-all flex items-center gap-1.5"
         >
           <Download className="w-4 h-4" />
           Xuất Báo Cáo Excel (.xlsx)
@@ -77,13 +77,13 @@ export const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-sm border border-chrome-200">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400" />
+          <Filter className="w-4 h-4 text-chrome-600" />
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="px-3 py-2 bg-chrome-50 border border-chrome-200 rounded-sm text-xs font-medium text-chrome-900 focus:outline focus:outline-2 focus:outline-accent-500"
           >
             <option value="">Tất cả loại hành động</option>
             <option value="LOGIN_SUCCESS">Đăng nhập thành công</option>
@@ -99,38 +99,38 @@ export const AuditLogPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400">Từ ngày:</span>
+          <span className="text-chrome-600">Từ ngày:</span>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="px-3 py-1.5 rounded-sm border border-chrome-200 text-xs focus:outline focus:outline-2 focus:outline-accent-500"
           />
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400">Đến ngày:</span>
+          <span className="text-chrome-600">Đến ngày:</span>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="px-3 py-1.5 rounded-sm border border-chrome-200 text-xs focus:outline focus:outline-2 focus:outline-accent-500"
           />
         </div>
 
         <button
           onClick={loadLogs}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors ml-auto"
+          className="px-4 py-2 bg-chrome-100 hover:bg-chrome-200 text-chrome-900 text-xs font-semibold rounded-sm transition-colors ml-auto"
         >
           Áp Dụng Bộ Lọc
         </button>
       </div>
 
       {/* Audit Log Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-chrome-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+            <thead className="bg-chrome-50 border-b border-chrome-200 text-chrome-600 font-bold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Thời Điểm</th>
                 <th className="py-3.5 px-4">Người Thực Hiện</th>
@@ -140,44 +140,44 @@ export const AuditLogPage: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Chi Tiết Thay Đổi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700 font-mono">
+            <tbody className="divide-y divide-chrome-100 text-chrome-900 font-mono">
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-4 text-slate-500">
+                <tr key={log.id} className="hover:bg-chrome-50/80 transition-colors">
+                  <td className="py-3.5 px-4 text-chrome-600">
                     {new Date(log.created_at).toLocaleString('vi-VN')}
                   </td>
-                  <td className="py-3.5 px-4 font-sans font-bold text-slate-800">
+                  <td className="py-3.5 px-4 font-sans font-bold text-chrome-900">
                     {log.user ? (
                       <div>
                         <span>{log.user.full_name}</span>
-                        <span className="block text-[10px] font-mono text-slate-400">@{log.user.username} ({log.user.role})</span>
+                        <span className="block text-[10px] font-mono text-chrome-600">@{log.user.username} ({log.user.role})</span>
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic">Hệ thống</span>
+                      <span className="text-chrome-600 italic">Hệ thống</span>
                     )}
                   </td>
                   <td className="py-3.5 px-4 font-sans">
-                    <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2 py-0.5 rounded-sm font-bold text-[10px] bg-chrome-100 text-chrome-900 border border-chrome-200">
                       {log.action}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-slate-600">
+                  <td className="py-3.5 px-4 text-chrome-600">
                     {log.target_entity} {log.target_id ? `(#${log.target_id})` : ''}
                   </td>
-                  <td className="py-3.5 px-4 text-slate-400">
+                  <td className="py-3.5 px-4 text-chrome-600">
                     {log.ip_address || '127.0.0.1'}
                   </td>
                   <td className="py-3.5 px-4 text-right font-sans">
                     {log.details ? (
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="px-2.5 py-1 text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1 text-accent-600 hover:text-accent-600 bg-chrome-50 hover:bg-chrome-100 rounded-sm text-xs font-semibold inline-flex items-center gap-1 transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         Xem JSON Diff
                       </button>
                     ) : (
-                      <span className="text-slate-300">—</span>
+                      <span className="text-chrome-200">—</span>
                     )}
                   </td>
                 </tr>
@@ -196,19 +196,19 @@ export const AuditLogPage: React.FC = () => {
           maxWidth="lg"
         >
           <div className="space-y-4">
-            <div className="p-3 bg-slate-100 rounded-xl text-xs space-y-1">
-              <p><span className="text-slate-500">Người thực hiện:</span> <b>{selectedLog.user?.full_name} (@{selectedLog.user?.username})</b></p>
-              <p><span className="text-slate-500">Thời gian:</span> {new Date(selectedLog.created_at).toLocaleString('vi-VN')}</p>
-              <p><span className="text-slate-500">Đối tượng:</span> {selectedLog.target_entity} {selectedLog.target_id ? `(ID: ${selectedLog.target_id})` : ''}</p>
-              <p><span className="text-slate-500">Địa chỉ IP:</span> {selectedLog.ip_address}</p>
+            <div className="p-3 bg-chrome-100 rounded-sm text-xs space-y-1">
+              <p><span className="text-chrome-600">Người thực hiện:</span> <b>{selectedLog.user?.full_name} (@{selectedLog.user?.username})</b></p>
+              <p><span className="text-chrome-600">Thời gian:</span> {new Date(selectedLog.created_at).toLocaleString('vi-VN')}</p>
+              <p><span className="text-chrome-600">Đối tượng:</span> {selectedLog.target_entity} {selectedLog.target_id ? `(ID: ${selectedLog.target_id})` : ''}</p>
+              <p><span className="text-chrome-600">Địa chỉ IP:</span> {selectedLog.ip_address}</p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-sky-600" />
+              <label className="block text-xs font-bold text-chrome-900 mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                <Terminal className="w-3.5 h-3.5 text-accent-600" />
                 Dữ Liệu Thay Đổi (Payload / JSON Diff):
               </label>
-              <pre className="p-4 bg-slate-900 text-emerald-400 rounded-xl font-mono text-xs overflow-x-auto max-h-80 border border-slate-800">
+              <pre className="p-4 bg-ink-950 text-clear-500 rounded-sm font-mono text-xs overflow-x-auto max-h-80 border border-chrome-900">
                 {JSON.stringify(selectedLog.details, null, 2)}
               </pre>
             </div>
@@ -216,7 +216,7 @@ export const AuditLogPage: React.FC = () => {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl"
+                className="px-4 py-2 bg-chrome-200 hover:bg-chrome-200 text-chrome-900 text-xs font-bold rounded-sm"
               >
                 Đóng
               </button>

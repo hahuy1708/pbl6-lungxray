@@ -21,6 +21,7 @@ import {
 import { Patient, PatientHistoryItem } from '../../types';
 import { patientService } from '../../services/patientService';
 import { Modal } from '../common/Modal';
+import { maskCard } from '../../utils/format';
 
 interface PatientHistoryModalProps {
   patient: Patient | null;
@@ -73,13 +74,13 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
     switch (status) {
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-clear-50 text-clear-500">
             <CheckCircle2 className="w-3 h-3" /> Đã hoàn thành
           </span>
         );
       case 'IN_PROGRESS':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-chrome-100 text-accent-600">
             <Activity className="w-3 h-3" /> Đang khám
           </span>
         );
@@ -91,7 +92,7 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
         );
       default:
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-slate-100 text-slate-700">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-bold bg-chrome-100 text-chrome-900">
             {status}
           </span>
         );
@@ -108,44 +109,44 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
       >
         <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
           {/* Card Thông tin hành chính (Chỉ đọc - Read only) */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+          <div className="bg-chrome-50 border border-chrome-200/80 rounded-sm p-5">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-chrome-200">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-sky-600 text-white rounded-lg font-mono font-bold text-sm tracking-wide shadow-xs">
+                <span className="px-3 py-1 bg-accent-600 text-white rounded-sm font-mono font-bold text-sm tracking-wide">
                   {patient.patient_code}
                 </span>
-                <h3 className="text-base font-bold text-slate-900">{patient.full_name}</h3>
+                <h3 className="text-base font-bold text-ink-950">{patient.full_name}</h3>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <span className="text-slate-400 block mb-0.5 font-medium">Số CCCD / Định danh</span>
-                <span className="font-mono font-semibold text-slate-800">{patient.card_number || '—'}</span>
+                <span className="text-chrome-600 block mb-0.5 font-medium">Số CCCD / Định danh</span>
+                <span className="font-mono font-semibold text-chrome-900">{maskCard(patient.card_number)}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5 font-medium">Ngày sinh / Tuổi</span>
-                <span className="font-medium text-slate-800">
+                <span className="text-chrome-600 block mb-0.5 font-medium">Ngày sinh / Tuổi</span>
+                <span className="font-medium text-chrome-900">
                   {patient.date_of_birth} {age !== null && `(${age} tuổi)`}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5 font-medium">Giới tính</span>
-                <span className="font-semibold text-slate-800">
+                <span className="text-chrome-600 block mb-0.5 font-medium">Giới tính</span>
+                <span className="font-semibold text-chrome-900">
                   {patient.gender === 'MALE' ? 'Nam' : patient.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5 font-medium">Số điện thoại</span>
-                <span className="font-mono font-semibold text-slate-800">{patient.phone || '—'}</span>
+                <span className="text-chrome-600 block mb-0.5 font-medium">Số điện thoại</span>
+                <span className="font-mono font-semibold text-chrome-900">{patient.phone || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5 font-medium">Mã thẻ BHYT</span>
-                <span className="font-mono font-semibold text-slate-800">{patient.insurance_number || '—'}</span>
+                <span className="text-chrome-600 block mb-0.5 font-medium">Mã thẻ BHYT</span>
+                <span className="font-mono font-semibold text-chrome-900">{patient.insurance_number || '—'}</span>
               </div>
               <div className="col-span-2 sm:col-span-3">
-                <span className="text-slate-400 block mb-0.5 font-medium">Địa chỉ thường trú</span>
-                <span className="font-medium text-slate-800">{patient.address || '—'}</span>
+                <span className="text-chrome-600 block mb-0.5 font-medium">Địa chỉ thường trú</span>
+                <span className="font-medium text-chrome-900">{patient.address || '—'}</span>
               </div>
             </div>
           </div>
@@ -153,43 +154,43 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
           {/* Dòng thời gian lịch sử các đợt khám (Timeline - UC008) */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-sky-600" />
+              <h4 className="text-sm font-bold text-chrome-900 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent-600" />
                 Lịch Sử Các Đợt Khám Ngoại Trú ({history.length} đợt)
               </h4>
             </div>
 
             {isLoading ? (
-              <div className="py-12 text-center text-slate-400 text-sm">
-                <div className="w-6 h-6 border-2 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="py-12 text-center text-chrome-600 text-sm">
+                <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 Đang tải dữ liệu bệnh sử...
               </div>
             ) : history.length === 0 ? (
-              <div className="p-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
+              <div className="p-8 bg-chrome-50 border border-dashed border-chrome-200 rounded-sm text-center text-chrome-600 text-xs">
                 Bệnh nhân này chưa có lịch sử đợt khám nào được ghi nhận trên hệ thống.
               </div>
             ) : (
-              <div className="relative border-l-2 border-sky-200 ml-4 pl-6 space-y-6">
+              <div className="relative border-l-2 border-chrome-200 ml-4 pl-6 space-y-6">
                 {history.map((hist) => (
                   <div key={hist.encounter_id} className="relative">
                     {/* Timeline Node Point */}
-                    <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-sky-600 border-4 border-white shadow-xs" />
+                    <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-accent-600 border-4 border-white" />
 
-                    <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-3.5 hover:border-sky-300 transition-colors">
+                    <div className="p-5 bg-white border border-chrome-200 rounded-sm space-y-3.5 hover:border-accent-500 transition-colors">
                       {/* Header đợt khám */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-chrome-100">
                         <div className="flex items-center gap-2.5">
-                          <span className="font-mono font-bold text-sky-700 text-xs bg-sky-50 px-2.5 py-1 rounded-md border border-sky-100">
+                          <span className="font-mono font-bold text-accent-600 text-xs bg-chrome-50 px-2.5 py-1 rounded-sm border border-chrome-100">
                             {hist.encounter_code}
                           </span>
-                          <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                          <span className="text-xs text-chrome-600 font-medium flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
                             {new Date(hist.date).toLocaleDateString('vi-VN')} {new Date(hist.date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                            <Stethoscope className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-xs text-chrome-600 font-medium flex items-center gap-1">
+                            <Stethoscope className="w-3.5 h-3.5 text-chrome-600" />
                             {hist.clinic_room} • BS. {hist.doctor_name}
                           </span>
                           {getStatusBadge(hist.status)}
@@ -199,38 +200,38 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
                       {/* Chi tiết bệnh án lâm sàng */}
                       <div className="space-y-2 text-xs">
                         {hist.chief_complaint && (
-                          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                            <span className="font-semibold text-slate-600 block mb-0.5">Lý do vào khám:</span>
-                            <p className="text-slate-800">{hist.chief_complaint}</p>
+                          <div className="bg-chrome-50 p-2.5 rounded-sm border border-chrome-100">
+                            <span className="font-semibold text-chrome-600 block mb-0.5">Lý do vào khám:</span>
+                            <p className="text-chrome-900">{hist.chief_complaint}</p>
                           </div>
                         )}
 
-                        <div className="bg-sky-50/50 p-3 rounded-lg border border-sky-100">
-                          <span className="font-bold text-sky-900 block mb-0.5">Chẩn đoán xác định:</span>
-                          <p className="text-slate-900 font-medium text-sm">
+                        <div className="bg-chrome-50/50 p-3 rounded-sm border border-chrome-100">
+                          <span className="font-bold text-accent-600 block mb-0.5">Chẩn đoán xác định:</span>
+                          <p className="text-ink-950 font-medium text-sm">
                             {hist.final_diagnosis || 'Chưa hoàn thành chẩn đoán'}
                           </p>
                         </div>
 
                         {hist.treatment_plan && (
                           <div>
-                            <span className="font-semibold text-slate-600 block mb-0.5">Phác đồ điều trị & Hướng xử trí:</span>
-                            <p className="text-slate-800 whitespace-pre-line">{hist.treatment_plan}</p>
+                            <span className="font-semibold text-chrome-600 block mb-0.5">Phác đồ điều trị & Hướng xử trí:</span>
+                            <p className="text-chrome-900 whitespace-pre-line">{hist.treatment_plan}</p>
                           </div>
                         )}
 
                         {hist.follow_up_recommendation && (
                           <div>
-                            <span className="font-semibold text-slate-600 block mb-0.5">Lời dặn & Hẹn tái khám:</span>
-                            <p className="text-slate-800">{hist.follow_up_recommendation}</p>
+                            <span className="font-semibold text-chrome-600 block mb-0.5">Lời dặn & Hẹn tái khám:</span>
+                            <p className="text-chrome-900">{hist.follow_up_recommendation}</p>
                           </div>
                         )}
                       </div>
 
                       {/* Hình ảnh X-quang và phân tích AI của đợt khám (nếu có) */}
                       {hist.xray_images && hist.xray_images.length > 0 && (
-                        <div className="pt-2 border-t border-slate-100">
-                          <span className="text-xs font-bold text-slate-700 block mb-2 flex items-center gap-1.5">
+                        <div className="pt-2 border-t border-chrome-100">
+                          <span className="text-xs font-bold text-chrome-900 block mb-2 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                             Ảnh Chụp X-Quang & Kết Quả AI Sàng Lọc ({hist.xray_images.length})
                           </span>
@@ -238,7 +239,7 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
                             {hist.xray_images.map((img) => (
                               <div
                                 key={img.id}
-                                className="group relative border border-slate-200 rounded-xl overflow-hidden bg-slate-900 hover:border-sky-500 transition-all cursor-pointer"
+                                className="group relative border border-chrome-200 rounded-sm overflow-hidden bg-ink-950 hover:border-accent-500 transition-all cursor-pointer"
                                 onClick={() => setPreviewImage(img.image_url)}
                               >
                                 <img
@@ -250,7 +251,7 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
                                   <Eye className="w-5 h-5" />
                                 </div>
                                 {img.ai_result && (
-                                  <div className="absolute bottom-0 inset-x-0 bg-slate-900/90 p-1 text-[10px] text-white text-center font-bold truncate">
+                                  <div className="absolute bottom-0 inset-x-0 bg-ink-950/90 p-1 text-[10px] text-white text-center font-bold truncate">
                                     {img.ai_result.predicted_category || 'Đã phân tích'} {img.ai_result.confidence_score ? `(${(Number(img.ai_result.confidence_score) * 100).toFixed(1)}%)` : ''}
                                   </div>
                                 )}
@@ -268,11 +269,11 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end pt-4 border-t border-slate-100 mt-4">
+        <div className="flex items-center justify-end pt-4 border-t border-chrome-100 mt-4">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            className="px-5 py-2 text-xs font-semibold text-chrome-900 hover:bg-chrome-100 rounded-sm transition-colors"
           >
             Đóng
           </button>
@@ -294,7 +295,7 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
           <img
             src={previewImage}
             alt="X-ray preview full"
-            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            className="max-w-full max-h-[90vh] object-contain rounded-sm"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -302,4 +303,3 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
     </>
   );
 };
-
