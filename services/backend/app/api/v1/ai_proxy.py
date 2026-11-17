@@ -52,7 +52,7 @@ async def upload_xray_image(
 
     # Sinh object key R2 theo cấu trúc quy chuẩn
     xray_uuid = uuid.uuid4().hex
-    r2_key = f"patients/{enc.patient_id}/encounters/{enc.id}/xray/{xray_uuid}/original{ext}"
+    r2_key = f"{settings.R2_KEY_PREFIX}/patients/{enc.patient_id}/encounters/{enc.id}/xray/{xray_uuid}/original{ext}"
     content_type = file.content_type or ("image/png" if ext == ".png" else "image/jpeg")
 
     # Upload trực tiếp lên Cloudflare R2 private bucket

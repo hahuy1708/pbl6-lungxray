@@ -51,6 +51,7 @@ services:
       R2_ENDPOINT_URL: ${R2_ENDPOINT_URL}
       R2_REGION: ${R2_REGION}
       R2_PRESIGNED_TTL_SECONDS: ${R2_PRESIGNED_TTL_SECONDS}
+      R2_KEY_PREFIX: ${R2_KEY_PREFIX}
     depends_on:
       - db
       - segmentation-api

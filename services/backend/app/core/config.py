@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Literal
 from cryptography.fernet import Fernet
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     R2_ENDPOINT_URL: str
     R2_REGION: str
     R2_PRESIGNED_TTL_SECONDS: int
+
+    # Namespace for bucket: dev (local) prod (server)
+    # Cleanup chỉ đụng tới object trong namespace này.
+    R2_KEY_PREFIX: Literal["dev", "prod"]
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
