@@ -3,6 +3,8 @@
 *.pth
 __pycache__/
 venv/
+services/frontend/node_modules/
+services/frontend/dist/
 data/*.png
 data/*.jpg
 .ipynb_checkpoints/

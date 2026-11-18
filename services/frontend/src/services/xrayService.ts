@@ -13,6 +13,10 @@ export const xrayService = {
     return response.data;
   },
 
+  deleteXray: async (xray_id: number): Promise<void> => {
+    await api.delete(`/xray/${xray_id}`);
+  },
+
   triggerAIDiagnosis: async (xray_id: number): Promise<AIDiagnosticResult> => {
     const response = await api.post(`/xray/${xray_id}/run-ai`);
     return response.data;

@@ -3,7 +3,7 @@ import uuid
 import base64
 import logging
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Response
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
@@ -13,7 +13,7 @@ from app.models.ai_result import AIDiagnosticResult
 from app.models.user import User
 from app.schemas.xray import XrayImageResponse, DoctorCommentUpdate, AIDiagnosticResultResponse
 from app.api.deps import require_roles, get_client_ip
-from app.services.r2_storage import upload_bytes_to_r2, get_object_bytes_from_r2, generate_presigned_url
+from app.services.r2_storage import upload_bytes_to_r2, get_object_bytes_from_r2, generate_presigned_url, delete_from_r2
 from app.services.audit_service import record_audit_log
 
 logger = logging.getLogger("ai_proxy")
@@ -31,9 +31,14 @@ async def upload_xray_image(
     current_user: User = Depends(require_roles(["DOCTOR", "ADMIN"]))
 ):
     """UC007: Tải tệp ảnh chụp X-quang phổi 2D lên hệ thống Cloudflare R2"""
-    enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
+    # Serialize uploads for one encounter so simultaneous requests cannot bypass the one-image rule.
+    enc = db.query(Encounter).filter(Encounter.id == encounter_id).with_for_update().first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    if enc.status == "COMPLETED" or (enc.clinical_record and enc.clinical_record.is_locked):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lượt khám đã khóa, không thể thay ảnh.")
+    if db.query(XrayImage.id).filter(XrayImage.encounter_id == enc.id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lượt khám đã có ảnh X-quang. Hãy xóa ảnh chưa phân tích trước khi tải ảnh thay thế.")
 
     filename = file.filename or "xray.png"
     ext = os.path.splitext(filename)[1].lower()
@@ -98,6 +103,44 @@ async def upload_xray_image(
         "original_filename": xray_img.original_filename,
         "ai_result": None
     }
+
+@router.delete("/xray/{xray_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_xray_image(
+    xray_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(["DOCTOR", "ADMIN"]))
+):
+    xray = db.query(XrayImage).filter(XrayImage.id == xray_id).first()
+    if not xray:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ảnh X-quang.")
+
+    enc = xray.encounter
+    if enc.status == "COMPLETED" or (enc.clinical_record and enc.clinical_record.is_locked):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lượt khám đã khóa, không thể xóa ảnh.")
+    if xray.ai_result:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ảnh đã có kết quả AI; không thể xóa khỏi hồ sơ.")
+
+    xray_prefix = os.path.dirname(xray.image_url)
+    try:
+        for key in (xray.image_url, f"{xray_prefix}/mask.png", f"{xray_prefix}/crop.png", f"{xray_prefix}/overlay.png"):
+            delete_from_r2(key)
+    except Exception as e:
+        logger.exception("Không thể xóa ảnh X-quang khỏi R2: %s", xray.image_url)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Không thể xóa ảnh khỏi R2: {str(e)}")
+
+    record_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action="DELETE_XRAY",
+        target_entity="xray_images",
+        target_id=xray.id,
+        ip_address=get_client_ip(request),
+        details={"filename": xray.original_filename, "encounter_id": enc.id}
+    )
+    db.delete(xray)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post("/xray/{xray_id}/run-ai", response_model=AIDiagnosticResultResponse)
 async def trigger_ai_diagnosis(

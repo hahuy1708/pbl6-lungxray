@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Trash2 } from 'lucide-react';
 import { XrayImage, PredictionItem } from '../../types';
 import { RiskBadge } from '../common/RiskBadge';
 import { xrayService } from '../../services/xrayService';
@@ -8,6 +8,7 @@ interface XRayViewerProps {
   xray: XrayImage;
   isLocked?: boolean;
   onCommentSaved?: () => void;
+  onDelete?: () => Promise<void>;
 }
 
 const MODEL_NOTE =
@@ -52,12 +53,13 @@ const GroupRow: React.FC<{ p: PredictionItem }> = ({ p }) => {
   );
 };
 
-export const XRayViewer: React.FC<XRayViewerProps> = ({ xray, isLocked = false, onCommentSaved }) => {
+export const XRayViewer: React.FC<XRayViewerProps> = ({ xray, isLocked = false, onCommentSaved, onDelete }) => {
   const [viewMode, setViewMode] = useState<'overlay' | 'split'>('overlay');
   const [opacity, setOpacity] = useState(65);
   const [zoom, setZoom] = useState(100);
   const [comment, setComment] = useState(xray.ai_result?.doctor_comment || '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   const opacityId = useId();
@@ -83,6 +85,19 @@ export const XRayViewer: React.FC<XRayViewerProps> = ({ xray, isLocked = false, 
     }
   };
 
+  const deleteImage = async () => {
+    if (!onDelete || !window.confirm('Xóa ảnh X-quang chưa phân tích khỏi lượt khám này?')) return;
+    setDeleting(true);
+    setStatus(null);
+    try {
+      await onDelete();
+    } catch (error: any) {
+      setStatus({ kind: 'error', text: error.response?.data?.detail || 'Chưa xóa được ảnh. Vui lòng thử lại.' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const scale = { transform: `scale(${zoom / 100})`, transformOrigin: 'center center' };
 
   return (
@@ -99,6 +114,17 @@ export const XRayViewer: React.FC<XRayViewerProps> = ({ xray, isLocked = false, 
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {onDelete && (
+            <button
+              type="button"
+              onClick={deleteImage}
+              disabled={deleting}
+              className="inline-flex items-center gap-1 rounded-sm px-2 py-1.5 text-sm text-flag-500 hover:bg-ink-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500 disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleting ? 'Đang xóa…' : 'Xóa ảnh'}
+            </button>
+          )}
           {viewMode === 'overlay' && hasOverlay && (
             <div className="flex items-center gap-2 text-sm">
               <label htmlFor={opacityId} className="text-ink-300">Độ mờ lớp phủ</label>

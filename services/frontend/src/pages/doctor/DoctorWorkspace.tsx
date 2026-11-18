@@ -162,6 +162,14 @@ export const DoctorWorkspace: React.FC = () => {
     }
   };
 
+  const handleDeleteXray = async (xrayId: number) => {
+    if (!activeEncounter) return;
+    await xrayService.deleteXray(xrayId);
+    setActiveEncounter(await encounterService.getEncounterDetail(activeEncounter.id));
+    setToastMsg('Đã xóa ảnh X-quang. Bạn có thể tải ảnh thay thế.');
+    setTimeout(() => setToastMsg(''), 2500);
+  };
+
   // Kích hoạt AI suy luận (UC007)
   const handleRunAI = async (xrayId: number) => {
     if (!activeEncounter) return;
@@ -475,11 +483,11 @@ export const DoctorWorkspace: React.FC = () => {
                     )}
 
                     {/* Upload Bar */}
-                    {!isLocked && (
+                    {!isLocked && activeEncounter.xray_images.length === 0 && (
                       <div className="p-4 bg-white border border-dashed border-chrome-200 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div>
                           <h4 className="text-sm font-bold text-chrome-900">Tải Lên Ảnh X-Quang Phổi 2D</h4>
-                          <p className="text-xs text-chrome-600">Định dạng hỗ trợ: .PNG, .JPG (Dung lượng tối đa 15MB)</p>
+                          <p className="text-xs text-chrome-600">Định dạng hỗ trợ: .PNG, .JPG (Dung lượng tối đa 20MB)</p>
                         </div>
 
                         <label className="px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white text-xs font-bold rounded-sm cursor-pointer flex items-center gap-1.5 transition-colors">
@@ -494,6 +502,11 @@ export const DoctorWorkspace: React.FC = () => {
                           />
                         </label>
                       </div>
+                    )}
+                    {!isLocked && activeEncounter.xray_images.length > 0 && (
+                      <p className="text-xs text-chrome-600">
+                        Lượt khám đã có ảnh. Chỉ có thể xóa ảnh trước khi chạy AI để tải ảnh thay thế.
+                      </p>
                     )}
 
                     {/* Hiển thị danh sách ảnh X-quang */}
@@ -519,6 +532,7 @@ export const DoctorWorkspace: React.FC = () => {
                           <XRayViewer
                             xray={xray}
                             isLocked={isLocked}
+                            onDelete={!isLocked && !xray.ai_result ? () => handleDeleteXray(xray.id) : undefined}
                             onCommentSaved={() => {
                               encounterService.getEncounterDetail(activeEncounter.id).then(setActiveEncounter);
                             }}

@@ -237,9 +237,11 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
                           </span>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             {hist.xray_images.map((img) => (
-                              <div
+                              <button
+                                type="button"
                                 key={img.id}
-                                className="group relative border border-chrome-200 rounded-sm overflow-hidden bg-ink-950 hover:border-accent-500 transition-all cursor-pointer"
+                                aria-label="Mở ảnh X-quang kích thước đầy đủ"
+                                className="group relative block w-full border border-chrome-200 rounded-sm overflow-hidden bg-ink-950 hover:border-accent-500 transition-all cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
                                 onClick={() => setPreviewImage(img.image_url)}
                               >
                                 <img
@@ -247,15 +249,15 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
                                   alt="X-ray thumbnail"
                                   className="w-full h-24 object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                 />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                                   <Eye className="w-5 h-5" />
-                                </div>
+                                </span>
                                 {img.ai_result && (
-                                  <div className="absolute bottom-0 inset-x-0 bg-ink-950/90 p-1 text-[10px] text-white text-center font-bold truncate">
+                                  <span className="absolute bottom-0 inset-x-0 bg-ink-950/90 p-1 text-[10px] text-white text-center font-bold truncate">
                                     {img.ai_result.predicted_category || 'Đã phân tích'} {img.ai_result.confidence_score ? `(${(Number(img.ai_result.confidence_score) * 100).toFixed(1)}%)` : ''}
-                                  </div>
+                                  </span>
                                 )}
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -283,7 +285,7 @@ export const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({
       {/* Lightbox Preview Modal */}
       {previewImage && (
         <div
-          className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 animate-in fade-in"
           onClick={() => setPreviewImage(null)}
         >
           <button
