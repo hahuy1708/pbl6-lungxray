@@ -9,7 +9,8 @@ def record_audit_log(
     target_entity: str,
     target_id: Optional[int] = None,
     ip_address: Optional[str] = None,
-    details: Optional[Any] = None
+    details: Optional[Any] = None,
+    commit: bool = True,
 ) -> AuditLog:
     """Ghi nhận bản ghi nhật ký kiểm toán hệ thống (Audit Log) theo UC011"""
     # Không lưu secret, password hay token vào chi tiết audit
@@ -26,6 +27,9 @@ def record_audit_log(
         details=safe_details
     )
     db.add(log_entry)
-    db.commit()
+    if commit:
+        db.commit()
+    else:
+        db.flush()
     db.refresh(log_entry)
     return log_entry

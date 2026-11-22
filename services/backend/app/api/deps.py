@@ -52,3 +52,16 @@ def require_roles(allowed_roles: List[str]):
             )
         return current_user
     return role_checker
+
+
+def verify_encounter_access(encounter, current_user: User) -> None:
+    """Keep an assigned encounter writable only by its doctor or an admin."""
+    if (
+        current_user.role == "DOCTOR"
+        and encounter.doctor_id is not None
+        and encounter.doctor_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bạn không có quyền thao tác trên lượt khám của bác sĩ khác.",
+        )

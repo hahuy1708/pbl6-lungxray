@@ -5,7 +5,7 @@ from app.models.encounter import Encounter
 from app.models.clinical_record import ClinicalRecord
 from app.models.user import User
 from app.schemas.clinical_record import ClinicalRecordUpdate, ClinicalRecordResponse
-from app.api.deps import require_roles, get_client_ip
+from app.api.deps import require_roles, get_client_ip, verify_encounter_access
 from app.services.audit_service import record_audit_log
 
 router = APIRouter(prefix="/encounters", tags=["Hồ sơ Khám Lâm sàng (Bác sĩ)"])
@@ -17,6 +17,10 @@ def get_clinical_record(
     current_user: User = Depends(require_roles(["DOCTOR", "NURSE", "ADMIN"])),
 ):
     """Lấy thông tin bệnh án lâm sàng của lượt khám"""
+    enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
+    if not enc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
     rec = db.query(ClinicalRecord).filter(ClinicalRecord.encounter_id == encounter_id).first()
     if not rec:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chưa có bệnh án cho lượt khám này.")
@@ -34,6 +38,7 @@ def save_clinical_record_draft(
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
 
     rec = db.query(ClinicalRecord).filter(ClinicalRecord.encounter_id == encounter_id).first()
     if not rec:

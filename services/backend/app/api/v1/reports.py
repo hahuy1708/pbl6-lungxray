@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.encounter import Encounter
 from app.models.user import User
-from app.api.deps import get_current_user, get_client_ip
+from app.api.deps import get_current_user, get_client_ip, verify_encounter_access
 from app.services.pdf_service import generate_medical_report_pdf
 from app.services.audit_service import record_audit_log
 
@@ -13,6 +13,7 @@ def _generate_pdf_response(encounter_id: int, request: Request, db: Session, cur
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
 
     try:
         pdf_bytes = generate_medical_report_pdf(enc)

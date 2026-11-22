@@ -11,7 +11,7 @@ from app.schemas.encounter import (
     EncounterCreate, AssignQueueRequest, CloseEncounterRequest,
     EncounterResponse, RoomQueueStatsResponse
 )
-from app.api.deps import get_current_user, require_roles, get_client_ip
+from app.api.deps import get_current_user, require_roles, get_client_ip, verify_encounter_access
 from app.services.queue_service import get_clinic_room_stats, assign_patient_to_room
 from app.services.audit_service import record_audit_log
 from app.services.r2_storage import generate_presigned_url
@@ -188,6 +188,7 @@ def start_exam(
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
 
     if enc.status == "COMPLETED":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ca khám này đã hoàn tất, không thể gọi lại.")
@@ -221,6 +222,7 @@ def close_encounter(
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
 
     if not body.final_diagnosis.strip():
         raise HTTPException(
@@ -268,4 +270,5 @@ def get_encounter_detail(
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
     return build_encounter_response(enc)

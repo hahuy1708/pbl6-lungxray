@@ -12,8 +12,7 @@ from app.models.xray_image import XrayImage
 from app.models.ai_result import AIDiagnosticResult
 from app.models.user import User
 from app.schemas.xray import XrayImageResponse, DoctorCommentUpdate, AIDiagnosticResultResponse
-from app.api.deps import require_roles, get_client_ip
-from app.services.r2_storage import upload_bytes_to_r2, get_object_bytes_from_r2, generate_presigned_url, delete_from_r2
+from app.api.deps import require_roles, get_client_ip, verify_encounter_access
 from app.services.audit_service import record_audit_log
 
 logger = logging.getLogger("ai_proxy")
@@ -35,6 +34,7 @@ async def upload_xray_image(
     enc = db.query(Encounter).filter(Encounter.id == encounter_id).with_for_update().first()
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
+    verify_encounter_access(enc, current_user)
     if enc.status == "COMPLETED" or (enc.clinical_record and enc.clinical_record.is_locked):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lượt khám đã khóa, không thể thay ảnh.")
     if db.query(XrayImage.id).filter(XrayImage.encounter_id == enc.id).first():
@@ -157,6 +157,7 @@ async def trigger_ai_diagnosis(
     enc = xray.encounter
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám liên kết.")
+    verify_encounter_access(enc, current_user)
 
     # 1. Đọc dữ liệu ảnh gốc từ Cloudflare R2
     try:
@@ -322,6 +323,7 @@ def update_doctor_comment(
     res = db.query(AIDiagnosticResult).filter(AIDiagnosticResult.id == result_id).first()
     if not res:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy kết quả AI.")
+    verify_encounter_access(res.xray_image.encounter, current_user)
 
     res.doctor_comment = body.doctor_comment.strip()
     db.commit()
