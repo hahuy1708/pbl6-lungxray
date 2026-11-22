@@ -11,13 +11,15 @@ jobs:
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - name: Kiểm tra cú pháp docker-compose.yml
         run: |
           cp .env.example .env
           docker compose config -q
+      - name: Build backend và frontend
+        run: docker compose build backend frontend
 
   deploy:
     needs: test
@@ -42,5 +44,7 @@ jobs:
           docker compose exec -T nginx nginx -t
           docker compose exec -T nginx nginx -s reload
           docker image prune -f
-      - name: Smoke test (web có sống không)
-        run: curl -fsS --retry 10 --retry-delay 5 --retry-all-errors https://www.lungxray.me > /dev/null
+      - name: Smoke test (web và backend có phản hồi)
+        run: |
+          curl -fsS --retry 10 --retry-delay 5 --retry-all-errors https://www.lungxray.me > /dev/null
+          curl -fsS --retry 10 --retry-delay 5 --retry-all-errors https://www.lungxray.me/api/health > /dev/null
