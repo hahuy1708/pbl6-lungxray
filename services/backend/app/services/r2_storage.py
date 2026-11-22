@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import BinaryIO, Optional
 import boto3
 from botocore.config import Config
 from app.core.config import settings
@@ -21,6 +21,17 @@ def upload_bytes_to_r2(file_bytes: bytes, key: str, content_type: str = "image/p
         Key=key,
         Body=file_bytes,
         ContentType=content_type
+    )
+    return key
+
+def upload_fileobj_to_r2(file_obj: BinaryIO, key: str, content_type: str = "image/png") -> str:
+    """Stream a seekable file object to the private R2 bucket."""
+    client = get_s3_client()
+    client.upload_fileobj(
+        Fileobj=file_obj,
+        Bucket=settings.R2_BUCKET_NAME,
+        Key=key,
+        ExtraArgs={"ContentType": content_type},
     )
     return key
 

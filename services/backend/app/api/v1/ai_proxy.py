@@ -13,12 +13,14 @@ from app.models.ai_result import AIDiagnosticResult
 from app.models.user import User
 from app.schemas.xray import XrayImageResponse, DoctorCommentUpdate, AIDiagnosticResultResponse
 from app.api.deps import require_roles, get_client_ip, verify_encounter_access
+from app.services.r2_storage import upload_fileobj_to_r2, upload_bytes_to_r2, get_object_bytes_from_r2, generate_presigned_url, delete_from_r2
 from app.services.audit_service import record_audit_log
 
 logger = logging.getLogger("ai_proxy")
 router = APIRouter(prefix="", tags=["Chẩn đoán X-quang & AI Trợ lý (Bác sĩ)"])
 
 MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024  # 20MB
+UPLOAD_CHUNK_SIZE = 1024 * 1024  # 1MB
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
 @router.post("/encounters/{encounter_id}/xray", response_model=XrayImageResponse)
@@ -48,12 +50,18 @@ async def upload_xray_image(
             detail="Định dạng ảnh không hợp lệ. Vui lòng sử dụng tệp ảnh X-quang định dạng .PNG hoặc .JPG."
         )
 
-    contents = await file.read()
-    if len(contents) > MAX_IMAGE_SIZE_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Kích thước tệp vượt quá giới hạn tối đa 20MB."
-        )
+    file_size = 0
+    while chunk := await file.read(UPLOAD_CHUNK_SIZE):
+        file_size += len(chunk)
+        if file_size > MAX_IMAGE_SIZE_BYTES:
+            await file.close()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Kích thước tệp vượt quá giới hạn tối đa 20MB."
+            )
+    if file_size == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tệp ảnh rỗng.")
+    file.file.seek(0)
 
     # Sinh object key R2 theo cấu trúc quy chuẩn
     xray_uuid = uuid.uuid4().hex
@@ -62,7 +70,7 @@ async def upload_xray_image(
 
     # Upload trực tiếp lên Cloudflare R2 private bucket
     try:
-        upload_bytes_to_r2(contents, r2_key, content_type=content_type)
+        upload_fileobj_to_r2(file.file, r2_key, content_type=content_type)
     except Exception as e:
         logger.exception("Lỗi khi tải ảnh lên Cloudflare R2")
         raise HTTPException(
@@ -75,7 +83,7 @@ async def upload_xray_image(
         image_url=r2_key,
         original_filename=filename,
         content_type=content_type,
-        file_size=len(contents),
+        file_size=file_size,
         uploaded_by=current_user.id
     )
     db.add(xray_img)
@@ -116,19 +124,16 @@ def delete_xray_image(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ảnh X-quang.")
 
     enc = xray.encounter
+    verify_encounter_access(enc, current_user)
     if enc.status == "COMPLETED" or (enc.clinical_record and enc.clinical_record.is_locked):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lượt khám đã khóa, không thể xóa ảnh.")
     if xray.ai_result:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ảnh đã có kết quả AI; không thể xóa khỏi hồ sơ.")
 
     xray_prefix = os.path.dirname(xray.image_url)
-    try:
-        for key in (xray.image_url, f"{xray_prefix}/mask.png", f"{xray_prefix}/crop.png", f"{xray_prefix}/overlay.png"):
-            delete_from_r2(key)
-    except Exception as e:
-        logger.exception("Không thể xóa ảnh X-quang khỏi R2: %s", xray.image_url)
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Không thể xóa ảnh khỏi R2: {str(e)}")
+    r2_keys = (xray.image_url, f"{xray_prefix}/mask.png", f"{xray_prefix}/crop.png", f"{xray_prefix}/overlay.png")
 
+    db.delete(xray)
     record_audit_log(
         db=db,
         user_id=current_user.id,
@@ -136,10 +141,16 @@ def delete_xray_image(
         target_entity="xray_images",
         target_id=xray.id,
         ip_address=get_client_ip(request),
-        details={"filename": xray.original_filename, "encounter_id": enc.id}
+        details={"filename": xray.original_filename, "encounter_id": enc.id},
+        commit=False,
     )
-    db.delete(xray)
     db.commit()
+
+    for key in r2_keys:
+        try:
+            delete_from_r2(key)
+        except Exception:
+            logger.exception("Không thể dọn object R2 sau khi xóa X-quang: %s", key)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post("/xray/{xray_id}/run-ai", response_model=AIDiagnosticResultResponse)
