@@ -4,7 +4,7 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d:ro
     depends_on:
@@ -18,7 +18,9 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     profiles: ["production"]
-    command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
 
   db:
     image: mysql:8.4
