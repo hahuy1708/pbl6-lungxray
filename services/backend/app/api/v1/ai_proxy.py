@@ -3,6 +3,7 @@ import uuid
 import base64
 import logging
 import httpx
+from PIL import Image
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Response
 from sqlalchemy.orm import Session
 from app.core.config import settings
@@ -49,6 +50,23 @@ async def upload_xray_image(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Định dạng ảnh không hợp lệ. Vui lòng sử dụng tệp ảnh X-quang định dạng .PNG hoặc .JPG."
         )
+
+    signature = await file.read(8)
+    expected_format = "PNG" if ext == ".png" else "JPEG"
+    if (expected_format == "PNG" and not signature.startswith(b"\x89PNG\r\n\x1a\n")) or (
+        expected_format == "JPEG" and not signature.startswith(b"\xff\xd8\xff")
+    ):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nội dung tệp không khớp định dạng ảnh đã chọn.")
+    file.file.seek(0)
+    try:
+        with Image.open(file.file) as image:
+            if image.format != expected_format:
+                raise ValueError("Image format does not match filename")
+            image.verify()
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tệp ảnh bị hỏng hoặc không hợp lệ.") from exc
+    finally:
+        file.file.seek(0)
 
     file_size = 0
     while chunk := await file.read(UPLOAD_CHUNK_SIZE):
