@@ -190,8 +190,8 @@ def start_exam(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
     verify_encounter_access(enc, current_user)
 
-    if enc.status == "COMPLETED":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ca khám này đã hoàn tất, không thể gọi lại.")
+    if enc.status != "WAITING":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Chỉ có thể bắt đầu khám với lượt đang chờ.")
 
     enc.status = "IN_PROGRESS"
     enc.doctor_id = current_user.id
@@ -223,6 +223,9 @@ def close_encounter(
     if not enc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy lượt khám.")
     verify_encounter_access(enc, current_user)
+
+    if enc.status != "IN_PROGRESS":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Chỉ có thể hoàn tất lượt khám đang được thực hiện.")
 
     if not body.final_diagnosis.strip():
         raise HTTPException(

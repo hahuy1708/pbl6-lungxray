@@ -73,6 +73,8 @@ def get_clinic_room_stats(db: Session) -> List[Dict[str, Any]]:
 
 def assign_patient_to_room(db: Session, encounter: Encounter, clinic_room_name: str) -> Encounter:
     """Phân bổ bệnh nhân vào phòng khám và cấp số thứ tự STT (UC004)"""
+    if encounter.status != "WAITING":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Chỉ có thể phân phòng cho lượt khám đang chờ.")
     # 1. Kiểm tra bác sĩ phụ trách phòng khám có đang BẬT trạng thái hoạt động không
     assigned_doctor = db.query(User).filter(
         User.role == "DOCTOR",

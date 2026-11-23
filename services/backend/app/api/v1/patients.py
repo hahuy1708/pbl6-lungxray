@@ -31,6 +31,13 @@ def format_patient_response(patient: Patient) -> dict:
         "created_at": patient.created_at
     }
 
+def restrict_doctor_to_assigned_patients(query, current_user: User):
+    if current_user.role == "DOCTOR":
+        query = query.join(Encounter, Encounter.patient_id == Patient.id).filter(
+            Encounter.doctor_id == current_user.id
+        ).distinct()
+    return query
+
 @router.get("", response_model=List[PatientResponse])
 def list_patients(
     query: Optional[str] = None,
@@ -38,7 +45,7 @@ def list_patients(
     current_user: User = Depends(get_current_user)
 ):
     """UC005: Tra cứu bệnh nhân theo Mã BN, CCCD, SĐT hoặc Họ tên"""
-    db_query = db.query(Patient)
+    db_query = restrict_doctor_to_assigned_patients(db.query(Patient), current_user)
 
     if query and query.strip():
         q = query.strip()
@@ -114,6 +121,10 @@ def get_patient_detail(
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy bệnh nhân.")
+    if current_user.role == "DOCTOR" and not db.query(Encounter.id).filter(
+        Encounter.patient_id == patient_id, Encounter.doctor_id == current_user.id
+    ).first():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không được phân công khám bệnh nhân này.")
     return format_patient_response(patient)
 
 @router.put("/{patient_id}", response_model=PatientResponse)
@@ -170,9 +181,12 @@ def get_patient_history(
     if not patient:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy bệnh nhân.")
 
-    encounters = db.query(Encounter).filter(
-        Encounter.patient_id == patient_id
-    ).order_by(Encounter.admission_time.desc()).all()
+    encounters_query = db.query(Encounter).filter(Encounter.patient_id == patient_id)
+    if current_user.role == "DOCTOR":
+        encounters_query = encounters_query.filter(Encounter.doctor_id == current_user.id)
+    encounters = encounters_query.order_by(Encounter.admission_time.desc()).all()
+    if current_user.role == "DOCTOR" and not encounters:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không được phân công khám bệnh nhân này.")
 
     history_list = []
     for enc in encounters:
